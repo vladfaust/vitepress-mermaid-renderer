@@ -1,6 +1,6 @@
 {
-  "buildCommand": "bun run docs:build",
+  "buildCommand": "npm run docs:build",
   "outputDirectory": ".vitepress/dist",
   "framework": "vitepress",
-  "installCommand": "bun install"
+  "installCommand": "npm install"
 }
