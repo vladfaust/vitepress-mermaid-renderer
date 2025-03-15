@@ -1,35 +1,43 @@
-# VitePress Mermaid Renderer
+# VitePress Mermaid Renderer 🎨
 
-An interactive Mermaid diagram renderer plugin for VitePress. With this package, Mermaid diagrams defined in your Markdown will be displayed with interactive features such as zooming, fullscreen viewing, and panning.
+[![npm version](https://badge.fury.io/js/vitepress-mermaid-renderer.svg)](https://www.npmjs.com/package/vitepress-mermaid-renderer)
 
-## Features
+Transform your static Mermaid diagrams into interactive, dynamic visualizations in VitePress! This powerful plugin brings life to your documentation by enabling interactive features like zooming, panning, and fullscreen viewing.
 
-- 🔍 Zoom in/out
-- 🔄 Navigate on diagram (panning)
-- 📋 Copy diagram code
-- 📏 Reset view
-- 🖥️ Fullscreen viewing
-- 🎨 Design compatible with VitePress themes
+## ✨ Key Features
 
-## Installation
+- 🔍 Smooth Zoom In/Out capabilities
+- 🔄 Intuitive Diagram Navigation with panning
+- 📋 One-Click Diagram Code Copy
+- 📏 Quick View Reset
+- 🖥️ Immersive Fullscreen Mode
+- 🎨 Seamless VitePress Theme Integration
+- ⚡ Lightning-fast Performance
+- 🛠️ Easy Configuration
 
-First, make sure you have Node.js installed. Then install the package:
+## 🚀 Quick Start
+
+### Installation
+
+Choose your preferred package manager:
 
 ```bash
+# Using npm
 npm install vitepress-mermaid-renderer
-```
 
-or if you prefer yarn:
-
-```bash
+# Using yarn
 yarn add vitepress-mermaid-renderer
+
+# Using pnpm
+pnpm add vitepress-mermaid-renderer
+
+# Using bun
+bun add vitepress-mermaid-renderer
 ```
 
-## Usage
+### VitePress Configuration
 
-### VitePress configuration
-
-your `.vitepress/config.ts` file is need to look like this:
+Your `.vitepress/config.ts` file is need to look like this:
 
 ```typescript
 // https://vitepress.dev/guide/custom-theme
@@ -41,81 +49,71 @@ import { MermaidRenderer } from "vitepress-mermaid-renderer";
 import "vitepress-mermaid-renderer/dist/style.css";
 
 export default {
-	extends: DefaultTheme,
-	Layout: () => {
-		return h(DefaultTheme.Layout, null, {
-			// https://vitepress.dev/guide/extending-default-theme#layout-slots
-		});
-	},
-	enhanceApp({ app, router, siteData }) {
-		const mermaidRenderer = MermaidRenderer.getInstance();
-		// const mermaidRenderer = MermaidRenderer.getInstance({
-		// 	timeline: {
-		// 		activationWidth: 10,
-		// 	},
-		// });
+  extends: DefaultTheme,
+  Layout: () => {
+    return h(DefaultTheme.Layout, null, {
+      // https://vitepress.dev/guide/extending-default-theme#layout-slots
+    });
+  },
+  enhanceApp({ app, router, siteData }) {
+    const mermaidRenderer = MermaidRenderer.getInstance();
+    // const mermaidRenderer = MermaidRenderer.getInstance({
+    // 	timeline: {
+    // 		activationWidth: 10,
+    // 	},
+    // });
 
-		// Add router hook to render mermaid diagrams after navigation
-		router.onAfterRouteChange = () => {
-			// Wait for DOM to update
-			setTimeout(() => mermaidRenderer.renderMermaidDiagrams(), 100);
-		};
-	},
+    // Add router hook to render mermaid diagrams after navigation
+    router.onAfterRouteChange = () => {
+      // Wait for DOM to update
+      setTimeout(() => mermaidRenderer.renderMermaidDiagrams(), 100);
+    };
+  },
 } satisfies Theme;
 ```
 
-## How It Works
+## 🔧 How It Works
 
-When the page loads, the plugin automatically detects any Mermaid code blocks (with language set to `mermaid`) and renders them as interactive diagrams. The diagrams include controls for:
+Your Mermaid diagrams spring to life automatically! The plugin detects Mermaid code blocks (marked with `mermaid` language) and transforms them into interactive diagrams with a powerful toolset:
 
-- Zooming in and out
-- Panning by dragging
-- Resetting the view
-- Fullscreen mode
-- Copying the diagram code
+- 🔍 Dynamic zoom controls
+- 🖱️ Smooth pan navigation
+- 🎯 One-click view reset
+- 📺 Immersive fullscreen experience
+- 📝 Easy code copying
 
-## Contributing
+## 🤝 Contributing
 
-You can contribute by submitting pull requests or reporting issues.
+We welcome contributions! Whether it's submitting pull requests, reporting issues, or suggesting improvements, your input helps make this plugin better for everyone.
 
-## Testing Locally
+## 🧪 Local Development
 
-Before publishing, you can test this package locally using one of these methods:
+Want to test the package locally? Here are two methods:
 
-### Method 1: Using npm link
-
-From the package directory:
+### Method 1: npm link
 
 ```bash
-# Build the package
+# In the package directory
 npm run build
-
-# Create a global link
 npm link
-```
 
-From your test project:
-
-```bash
-# Link to the package
+# In your test project
 npm link vitepress-mermaid-renderer
 ```
 
-### Method 2: Using npm pack
-
-From the package directory:
+### Method 2: npm pack
 
 ```bash
-# Build the package
+# In the package directory
 npm run build
-
-# Create a tarball
 npm pack
-```
 
-This will create a file like `vitepress-mermaid-renderer-1.0.0.tgz`. Then, from your test project:
-
-```bash
-# Install the local package
+# In your test project
 npm install /path/to/vitepress-mermaid-renderer-1.0.0.tgz
 ```
+
+## 📦 Links
+
+- [NPM Package](https://www.npmjs.com/package/vitepress-mermaid-renderer)
+- [GitHub Repository](https://github.com/sametcn99/vitepress-mermaid-renderer)
+- [Documentation](https://vitepress-mermaid-renderer.vercel.app/)

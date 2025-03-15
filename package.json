@@ -1,60 +1,62 @@
 {
-	"name": "vitepress-mermaid-renderer",
-	"version": "1.0.2",
-	"description": "A VitePress plugin to render Mermaid diagrams with interactive controls",
-	"type": "module",
-	"main": "./dist/vitepress-mermaid-renderer.umd.cjs",
-	"module": "./dist/vitepress-mermaid-renderer.js",
-	"types": "./dist/index.d.ts",
-	"exports": {
-		".": {
-			"import": "./dist/vitepress-mermaid-renderer.js",
-			"require": "./dist/vitepress-mermaid-renderer.umd.cjs",
-			"types": "./dist/index.d.ts"
-		},
-		"./dist/style.css": "./dist/style.css"
-	},
-	"files": [
-		"dist"
-	],
-	"readme": "README.md",
-	"author": "sametcn99",
-	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
-		"preview": "vite preview",
-		"prepublishOnly": "npm run build",
-		"pack": "npm pack",
-		"test-pack": "npm pack --dry-run"
-	},
-	"keywords": [
-		"vitepress",
-		"mermaid",
-		"diagram",
-		"vue",
-		"plugin"
-	],
-	"license": "GPL-3.0-only",
-	"peerDependencies": {
-		"vue": "^3.0.0",
-		"mermaid": "^11.0.0"
-	},
-	"devDependencies": {
-		"@types/node": "^20.0.0",
-		"@vitejs/plugin-vue": "^5.0.0",
-		"mermaid": "^11.5.0",
-		"typescript": "^5.0.0",
-		"vite": "^5.0.0",
-		"vite-plugin-dts": "^3.0.0",
-		"vitepress": "^1.6.3",
-		"vue": "^3.3.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/sametcn99/vitepress-mermaid-renderer.git"
-	},
-	"bugs": {
-		"url": "https://github.com/sametcn99/vitepress-mermaid-renderer/issues"
-	},
-	"homepage": "https://github.com/sametcn99/vitepress-mermaid-renderer#readme"
+  "name": "vitepress-mermaid-renderer",
+  "version": "1.0.3",
+  "description": "A VitePress plugin to render Mermaid diagrams with interactive controls",
+  "type": "module",
+  "main": "./dist/vitepress-mermaid-renderer.umd.cjs",
+  "module": "./dist/vitepress-mermaid-renderer.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/vitepress-mermaid-renderer.js",
+      "require": "./dist/vitepress-mermaid-renderer.umd.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./dist/style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "readme": "README.md",
+  "author": "sametcn99",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build",
+    "pack": "npm pack",
+    "test-pack": "npm pack --dry-run",
+    "format": "prettier --write ."
+  },
+  "keywords": [
+    "vitepress",
+    "mermaid",
+    "diagram",
+    "vue",
+    "plugin"
+  ],
+  "license": "GPL-3.0-only",
+  "peerDependencies": {
+    "vue": "^3.0.0",
+    "mermaid": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "mermaid": "^11.5.0",
+    "prettier": "3.5.3",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.0.0",
+    "vitepress": "^1.6.3",
+    "vue": "^3.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sametcn99/vitepress-mermaid-renderer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sametcn99/vitepress-mermaid-renderer/issues"
+  },
+  "homepage": "https://vitepress-mermaid-renderer.vercel.app"
 }

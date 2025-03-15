@@ -5,6 +5,7 @@
 Install the package using your preferred package manager:
 
 ::: code-group
+
 ```bash [npm]
 npm install vitepress-mermaid-renderer
 ```
@@ -20,6 +21,7 @@ pnpm add vitepress-mermaid-renderer
 ```bash [bun]
 bun add vitepress-mermaid-renderer
 ```
+
 :::
 
 ## Setup
@@ -57,9 +59,9 @@ Create a code block with the language set to `mermaid`:
 
 \`\`\`mermaid
 flowchart TD
-    A[Start] --> B{Is it?}
-    B -->|Yes| C[OK]
-    B -->|No| D[NOT OK]
+A[Start] --> B{Is it?}
+B -->|Yes| C[OK]
+B -->|No| D[NOT OK]
 \`\`\`
 
 This will render an interactive diagram with zoom, pan, and fullscreen controls.
@@ -70,7 +72,7 @@ You can customize the Mermaid settings by passing a configuration object when ge
 
 ```ts
 const mermaidRenderer = MermaidRenderer.getInstance({
-  theme: 'dark',
+  theme: "dark",
   sequence: {
     diagramMarginX: 50,
     diagramMarginY: 10,
