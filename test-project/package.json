@@ -15,6 +15,6 @@
 		"vitepress": "^1.6.3"
 	},
 	"dependencies": {
-		"vitepress-mermaid-renderer": "^1.0.0"
+		"vitepress-mermaid-renderer": "^1.0.1"
 	}
 }

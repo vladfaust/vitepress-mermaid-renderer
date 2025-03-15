@@ -3,6 +3,8 @@ import { createApp } from "vue";
 import MermaidDiagram from "./MermaidDiagram.vue";
 import { MermaidConfig } from "mermaid";
 
+const isBrowser = typeof window !== "undefined" && typeof document !== "undefined";
+
 export class MermaidRenderer {
 	private static instance: MermaidRenderer;
 	private config: MermaidConfig;
@@ -23,22 +25,27 @@ export class MermaidRenderer {
 	}
 
 	private cleanupMermaidWrapper(wrapper: Element): void {
+		if (!isBrowser) return;
 		const button = wrapper.querySelector("button");
 		button?.remove();
 	}
 
 	private createMermaidComponent(code: string) {
+		if (!isBrowser) return null;
 		const wrapper = document.createElement("div");
 		wrapper.id = `${Math.random().toString(36).slice(2)}`;
 		return { wrapper, component: h(MermaidDiagram, { code, config: this.config }) };
 	}
 
 	private renderMermaidDiagram(element: HTMLPreElement): void {
+		if (!isBrowser) return;
 		try {
 			if (!element || !element.parentNode) return;
 
 			const code = element.textContent?.trim() || "";
-			const { wrapper, component } = this.createMermaidComponent(code);
+			const result = this.createMermaidComponent(code);
+			if (!result) return;
+			const { wrapper, component } = result;
 
 			// Replace pre element with component
 			element.parentNode.replaceChild(wrapper, element);
@@ -53,8 +60,8 @@ export class MermaidRenderer {
 	}
 
 	public renderMermaidDiagrams(): void {
+		if (!isBrowser) return;
 		const mermaidWrappers = document.getElementsByClassName("language-mermaid");
-		console.log(mermaidWrappers);
 
 		// Cleanup wrappers
 		Array.from(mermaidWrappers).forEach(this.cleanupMermaidWrapper);
