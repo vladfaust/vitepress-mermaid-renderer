@@ -1,0 +1,97 @@
+.mermaid-container {
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+}
+
+.controls {
+	position: absolute;
+	bottom: 8px;
+	right: 8px;
+	z-index: 10;
+	display: flex;
+	gap: 4px;
+	background: var(--vp-c-bg-soft);
+	padding: 4px;
+	border-radius: 4px;
+	opacity: 0;
+	transition: opacity 0.2s ease-in-out;
+}
+
+.mermaid-container:hover .controls {
+	opacity: 1;
+}
+
+.controls button {
+	position: relative;
+	padding: 4px;
+	border: 1px solid var(--vp-c-divider);
+	background: var(--vp-c-bg);
+	border-radius: 4px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--vp-c-text-1);
+}
+
+.controls button:hover {
+	background: var(--vp-c-bg-soft);
+}
+
+.diagram-wrapper {
+	overflow: hidden;
+	position: relative;
+	min-height: 200px;
+	max-height: 600px;
+}
+
+.diagram-wrapper:fullscreen {
+	background: var(--vp-c-bg);
+	color: var(--vp-c-text-1);
+	padding: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	max-height: none;
+}
+
+.mermaid {
+	transition: opacity 0.2s ease-in;
+	transform-origin: center center;
+	display: inline-block;
+}
+
+.copied-notification {
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	background: var(--vp-c-brand);
+	color: white;
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 12px;
+	white-space: nowrap;
+	margin-bottom: 4px;
+	opacity: 0;
+	animation: fadeInOut 2s ease-in-out;
+}
+
+@keyframes fadeInOut {
+	0% {
+		opacity: 0;
+	}
+
+	10% {
+		opacity: 1;
+	}
+
+	90% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+	}
+}

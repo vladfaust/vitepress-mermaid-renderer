@@ -1,0 +1,23 @@
+{
+	"name": "vitepress-mermaid-renderer-test",
+	"version": "1.0.0",
+	"description": "Test project for vitepress-mermaid-renderer",
+	"main": "index.js",
+	"scripts": {
+		"dev": "vitepress dev docs",
+		"build": "vitepress build docs",
+		"preview": "vitepress preview docs",
+		"docs:dev": "vitepress dev",
+		"docs:build": "vitepress build",
+		"docs:preview": "vitepress preview"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"vitepress": "^1.6.3"
+	},
+	"dependencies": {
+		"vitepress-mermaid-renderer": "C:/Users/samet/SWProjects/vitepress-mermaid-renderer/vitepress-mermaid-renderer-1.0.0.tgz"
+	}
+}
