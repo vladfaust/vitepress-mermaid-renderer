@@ -4,9 +4,6 @@
 	"description": "Test project for vitepress-mermaid-renderer",
 	"main": "index.js",
 	"scripts": {
-		"dev": "vitepress dev docs",
-		"build": "vitepress build docs",
-		"preview": "vitepress preview docs",
 		"docs:dev": "vitepress dev",
 		"docs:build": "vitepress build",
 		"docs:preview": "vitepress preview"
