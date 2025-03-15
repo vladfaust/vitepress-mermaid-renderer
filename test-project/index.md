@@ -3,7 +3,6 @@ layout: home
 
 hero:
   name: "VitePress Mermaid Renderer"
-  text: "Interactive Mermaid Diagrams for VitePress"
   tagline: Add interactive controls to your Mermaid diagrams in VitePress
   actions:
     - theme: brand
