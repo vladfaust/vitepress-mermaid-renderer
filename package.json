@@ -1,6 +1,6 @@
 {
   "name": "vitepress-mermaid-renderer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A VitePress plugin to render Mermaid diagrams with interactive controls",
   "type": "module",
   "main": "./dist/vitepress-mermaid-renderer.umd.cjs",
@@ -31,9 +31,15 @@
   "keywords": [
     "vitepress",
     "mermaid",
-    "diagram",
-    "vue",
-    "plugin"
+    "diagrams",
+    "documentation",
+    "markdown",
+    "plugin",
+    "vitepress-mermaid",
+    "vitepress-plugin",
+    "vitepress-plugin-mermaid",
+    "vitepress-plugin-mermaid-renderer",
+    "vitepress-plugin-mermaid"
   ],
   "license": "GPL-3.0-only",
   "peerDependencies": {
