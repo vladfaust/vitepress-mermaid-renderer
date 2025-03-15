@@ -30,6 +30,6 @@
     "vitepress": "^1.6.3"
   },
   "dependencies": {
-    "vitepress-mermaid-renderer": "^1.0.5"
+    "vitepress-mermaid-renderer": "^1.0.6"
   }
 }

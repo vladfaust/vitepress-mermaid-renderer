@@ -63,7 +63,8 @@ export default {
     // 		activationWidth: 10,
     // 	},
     // });
-
+    // Render mermaid diagrams on page load
+    mermaidRenderer.renderMermaidDiagrams();
     // Add router hook to render mermaid diagrams after navigation
     router.onAfterRouteChange = () => {
       // Wait for DOM to update
