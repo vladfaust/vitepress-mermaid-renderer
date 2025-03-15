@@ -13,71 +13,56 @@ An interactive Mermaid diagram renderer plugin for VitePress. With this package,
 
 ## Installation
 
+First, make sure you have Node.js installed. Then install the package:
+
 ```bash
-npm install vitepress-mermaid-renderer mermaid
+npm install vitepress-mermaid-renderer
 ```
 
-or
+or if you prefer yarn:
 
 ```bash
-yarn add vitepress-mermaid-renderer mermaid
+yarn add vitepress-mermaid-renderer
 ```
 
 ## Usage
 
 ### VitePress configuration
 
-Add the following configuration to your `.vitepress/config.ts` file:
+your `.vitepress/config.ts` file is need to look like this:
 
 ```typescript
-import { defineConfig } from "vitepress";
-import { vitepressMermaidPlugin } from "vitepress-mermaid-renderer";
-
-export default defineConfig({
-	// ... other configurations
-	markdown: {
-		config: (md) => {
-			vitepressMermaidPlugin(md, {
-				// optional configuration
-				theme: "default",
-				securityLevel: "loose",
-				startOnLoad: false,
-			});
-		},
-	},
-});
-```
-
-### Integrate with your VitePress theme
-
-In your `.vitepress/theme/index.ts` file:
-
-```typescript
+// https://vitepress.dev/guide/custom-theme
+import { h } from "vue";
+import type { Theme } from "vitepress";
 import DefaultTheme from "vitepress/theme";
-import { setupMermaidPlugin } from "vitepress-mermaid-renderer";
+import "./style.css";
+import { MermaidRenderer } from "vitepress-mermaid-renderer";
+import "vitepress-mermaid-renderer/dist/style.css";
 
 export default {
-	...DefaultTheme,
-	enhanceApp({ app }) {
-		setupMermaidPlugin(app);
+	extends: DefaultTheme,
+	Layout: () => {
+		return h(DefaultTheme.Layout, null, {
+			// https://vitepress.dev/guide/extending-default-theme#layout-slots
+		});
 	},
-};
+	enhanceApp({ app, router, siteData }) {
+		const mermaidRenderer = MermaidRenderer.getInstance();
+		// const mermaidRenderer = MermaidRenderer.getInstance({
+		// 	timeline: {
+		// 		activationWidth: 10,
+		// 	},
+		// });
+
+		// Add router hook to render mermaid diagrams after navigation
+		router.onAfterRouteChange = () => {
+			// Wait for DOM to update
+			setTimeout(() => mermaidRenderer.renderMermaidDiagrams(), 100);
+		};
+	},
+} satisfies Theme;
 ```
-
-### Usage in Markdown
-
-````markdown
-# Diagram Examples
-
-```mermaid
-graph TD
-A[Start Task] --> B{Condition Check}
-B -->|Yes| C[Action]
-C --> D[Result]
-B -->|No| E[Other Action]
-E --> D
-```
-````
 
 ## How It Works
 
@@ -88,18 +73,6 @@ When the page loads, the plugin automatically detects any Mermaid code blocks (w
 - Resetting the view
 - Fullscreen mode
 - Copying the diagram code
-
-## Customization
-
-You can customize certain features with plugin options:
-
-```typescript
-vitepressMermaidPlugin(md, {
-	theme: "default", // or 'dark', 'forest', etc.
-	securityLevel: "loose", // Mermaid security level
-	startOnLoad: false, // Let the plugin handle initialization
-});
-```
 
 ## Contributing
 
@@ -146,38 +119,3 @@ This will create a file like `vitepress-mermaid-renderer-1.0.0.tgz`. Then, from 
 # Install the local package
 npm install /path/to/vitepress-mermaid-renderer-1.0.0.tgz
 ```
-
-### Method 3: Using yalc (recommended)
-
-First, install yalc globally:
-
-```bash
-npm install -g yalc
-```
-
-From the package directory:
-
-```bash
-# Build the package
-npm run build
-
-# Publish to local yalc store
-yalc publish
-```
-
-From your test project:
-
-```bash
-# Add the package from yalc store
-yalc add vitepress-mermaid-renderer
-```
-
-After making changes to the package:
-
-```bash
-# From the package directory
-npm run build
-yalc push
-```
-
-This automatically updates all projects where you added the package.

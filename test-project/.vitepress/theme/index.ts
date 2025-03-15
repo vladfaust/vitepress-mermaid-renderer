@@ -15,6 +15,11 @@ export default {
 	},
 	enhanceApp({ app, router, siteData }) {
 		const mermaidRenderer = MermaidRenderer.getInstance();
+		// const mermaidRenderer = MermaidRenderer.getInstance({
+		// 	timeline: {
+		// 		activationWidth: 10,
+		// 	},
+		// });
 
 		// Add router hook to render mermaid diagrams after navigation
 		router.onAfterRouteChange = () => {

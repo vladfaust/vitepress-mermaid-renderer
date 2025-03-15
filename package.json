@@ -17,6 +17,8 @@
 	"files": [
 		"dist"
 	],
+	"readme": "README.md",
+	"author": "sametcn99",
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
@@ -32,7 +34,6 @@
 		"vue",
 		"plugin"
 	],
-	"author": "Your Name <your.email@example.com>",
 	"license": "MIT",
 	"peerDependencies": {
 		"vue": "^3.0.0",

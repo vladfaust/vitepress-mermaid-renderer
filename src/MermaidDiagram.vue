@@ -55,60 +55,69 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import mermaid from "mermaid";
+import mermaid, { MermaidConfig } from "mermaid";
 import "./styles.css";
-
-mermaid.initialize({
-  theme: "default",
-  securityLevel: "loose",
-  startOnLoad: false,
-  flowchart: {
-    useMaxWidth: false,
-    htmlLabels: true,
-  },
-  sequence: {
-    diagramMarginX: 50,
-    diagramMarginY: 10,
-    actorMargin: 50,
-    width: 150,
-    height: 65,
-    boxMargin: 10,
-    boxTextMargin: 5,
-    noteMargin: 10,
-    messageMargin: 35,
-    mirrorActors: true,
-    bottomMarginAdj: 1,
-    useMaxWidth: false,
-    rightAngles: false,
-    showSequenceNumbers: false,
-  },
-  gantt: {
-    useMaxWidth: false,
-    topPadding: 50,
-    leftPadding: 50,
-    rightPadding: 50,
-    gridLineStartPadding: 35,
-    barHeight: 50,
-    barGap: 40,
-    displayMode: "compact",
-    axisFormat: "%Y-%m-%d",
-    topAxis: false,
-    tickInterval: "day",
-    useWidth: 2048,
-  },
-  class: {
-    arrowMarkerAbsolute: false,
-    useMaxWidth: false,
-  },
-  journey: {
-    useMaxWidth: false,
-  },
-  pie: {},
-});
 
 const props = defineProps<{
   code: string;
+  config?: MermaidConfig;
 }>();
+
+// Initialize mermaid with default or provided config
+onMounted(() => {
+  const defaultConfig: MermaidConfig = {
+    theme: "default",
+    securityLevel: "loose",
+    startOnLoad: false,
+    flowchart: {
+      useMaxWidth: false,
+      htmlLabels: true,
+    },
+    sequence: {
+      diagramMarginX: 50,
+      diagramMarginY: 10,
+      actorMargin: 50,
+      width: 150,
+      height: 65,
+      boxMargin: 10,
+      boxTextMargin: 5,
+      noteMargin: 10,
+      messageMargin: 35,
+      mirrorActors: true,
+      bottomMarginAdj: 1,
+      useMaxWidth: false,
+      rightAngles: false,
+      showSequenceNumbers: false,
+    },
+    gantt: {
+      useMaxWidth: false,
+      topPadding: 50,
+      leftPadding: 50,
+      rightPadding: 50,
+      gridLineStartPadding: 35,
+      barHeight: 50,
+      barGap: 40,
+      displayMode: "compact",
+      axisFormat: "%Y-%m-%d",
+      topAxis: false,
+      tickInterval: "day",
+      useWidth: 2048,
+    },
+    class: {
+      arrowMarkerAbsolute: false,
+      useMaxWidth: false,
+    },
+    journey: {
+      useMaxWidth: false,
+    },
+    pie: {},
+  };
+
+  mermaid.initialize({
+    ...defaultConfig,
+    ...props.config,
+  });
+});
 
 const showCopied = ref(false);
 
