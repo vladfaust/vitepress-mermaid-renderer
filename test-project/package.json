@@ -18,6 +18,6 @@
 		"vitepress": "^1.6.3"
 	},
 	"dependencies": {
-		"vitepress-mermaid-renderer": "C:/Users/samet/SWProjects/vitepress-mermaid-renderer/vitepress-mermaid-renderer-1.0.0.tgz"
+		"vitepress-mermaid-renderer": "^1.0.0"
 	}
 }
