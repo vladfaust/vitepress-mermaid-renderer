@@ -1,52 +1,48 @@
 // https://vitepress.dev/guide/custom-theme
-import { h, nextTick, onMounted, watch } from "vue";
+import { h } from "vue";
 import type { Theme } from "vitepress";
 import DefaultTheme from "vitepress/theme";
 import "./style.css";
 import { MermaidRenderer } from "vitepress-mermaid-renderer";
 import "vitepress-mermaid-renderer/dist/style.css";
 
+const mermaidRenderer = MermaidRenderer.getInstance();
+
 export default {
   extends: DefaultTheme,
   Layout: () => {
-    const layout = h(DefaultTheme.Layout, null, {});
-    
     if (typeof window !== 'undefined') {
-      // Initialize once the component is mounted
-      onMounted(() => {
-        const mermaidRenderer = MermaidRenderer.getInstance();
-        mermaidRenderer.initialize();
-        
-        // Initial render with a slight delay to ensure DOM is ready
-        setTimeout(() => {
+      // Clear any existing observer
+      mermaidRenderer.initialize();
+      
+      // Handle route changes and ensure diagrams are rendered after full page load
+      const observer = new MutationObserver((mutations) => {
+        // Check if actual content has been added
+        if (mutations.some(m => m.addedNodes.length > 0)) {
           mermaidRenderer.renderMermaidDiagrams();
-        }, 100);
-
-        // Watch for content changes
-        const observer = new MutationObserver(() => {
-          nextTick(() => mermaidRenderer.renderMermaidDiagrams());
-        });
-
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true
-        });
+        }
       });
-    }
 
-    return layout;
+      // Observe the page content
+      setTimeout(() => {
+        const content = document.querySelector('.vp-doc');
+        if (content) {
+          observer.observe(content, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            characterData: true
+          });
+          mermaidRenderer.renderMermaidDiagrams();
+        }
+      }, 100);
+    }
+    return h(DefaultTheme.Layout, null, {});
   },
   enhanceApp({ router }) {
-    if (typeof window !== 'undefined') {
-      const mermaidRenderer = MermaidRenderer.getInstance();
-
-      router.onAfterRouteChange = () => {
-        nextTick(() => {
-          setTimeout(() => {
-            mermaidRenderer.renderMermaidDiagrams();
-          }, 100);
-        });
-      };
-    }
+    // Handle route changes
+    router.onAfterRouteChanged = () => {
+      mermaidRenderer.renderMermaidDiagrams();
+    };
   },
 } satisfies Theme;
