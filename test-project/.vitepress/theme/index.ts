@@ -1,30 +1,25 @@
 // https://vitepress.dev/guide/custom-theme
-import { h, nextTick, onMounted } from "vue";
+import { h, nextTick } from "vue";
 import type { Theme } from "vitepress";
 import DefaultTheme from "vitepress/theme";
 import "./style.css";
 import { MermaidRenderer } from "vitepress-mermaid-renderer";
 import "vitepress-mermaid-renderer/dist/style.css";
 
+const mermaidRenderer = MermaidRenderer.getInstance();
+
 export default {
   extends: DefaultTheme,
   Layout: () => {
-    return h(DefaultTheme.Layout, null, {
-      // Add a mounted hook to render diagrams on initial page load
-      "page-top": () =>
-        h("div", {
-          onMounted: () => {
-            const mermaidRenderer = MermaidRenderer.getInstance();
-            nextTick(() => mermaidRenderer.renderMermaidDiagrams());
-          },
-        }),
-    });
+    // Force render on page load - this ensures diagrams render even on direct page loads
+    if (typeof window !== "undefined") {
+      mermaidRenderer.initialize();
+      nextTick(() => mermaidRenderer.renderMermaidDiagrams());
+    }
+    return h(DefaultTheme.Layout, null, {});
   },
-  enhanceApp({ app, router, siteData }) {
-    const mermaidRenderer = MermaidRenderer.getInstance();
-    mermaidRenderer.initialize();
-
-    // Handle route changes
+  enhanceApp({ router }) {
+    // Handle subsequent route changes
     router.onAfterRouteChange = () => {
       nextTick(() => mermaidRenderer.renderMermaidDiagrams());
     };
