@@ -8,21 +8,39 @@ import "vitepress-mermaid-renderer/dist/style.css";
 
 const mermaidRenderer = MermaidRenderer.getInstance();
 
+// Ensure diagrams are rendered even if Vue lifecycle hooks miss them
+const ensureDiagramsRendered = () => {
+  if (typeof window !== "undefined" && document.querySelector(".mermaid")) {
+    mermaidRenderer.renderMermaidDiagrams();
+  }
+};
+
 export default {
   extends: DefaultTheme,
   Layout: () => {
-    if (typeof window !== 'undefined') {
-      onMounted(() => {
+    if (typeof window !== "undefined") {
+      // Handle initial page load
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
+          mermaidRenderer.initialize();
+          ensureDiagramsRendered();
+        });
+      } else {
         mermaidRenderer.initialize();
-        
+        ensureDiagramsRendered();
+      }
+
+      onMounted(() => {
         // Wait for page hydration to complete
         setTimeout(() => {
-          mermaidRenderer.renderMermaidDiagrams();
-          
+          ensureDiagramsRendered();
+
           // Set up observer for dynamic content changes
-          const observer = new MutationObserver((mutations, obs) => {
-            if (document.querySelector('.mermaid')) {
-              mermaidRenderer.renderMermaidDiagrams();
+          const observer = new MutationObserver((mutations) => {
+            if (document.querySelector(".mermaid")) {
+              requestAnimationFrame(() => {
+                ensureDiagramsRendered();
+              });
             }
           });
 
@@ -31,19 +49,22 @@ export default {
             childList: true,
             subtree: true,
             attributes: false,
-            characterData: false
+            characterData: false,
           });
-        }, 300); // Increased delay to ensure full hydration
+        }, 300);
       });
     }
+
     return h(DefaultTheme.Layout, null, {});
   },
   enhanceApp({ router }) {
-    // Handle route changes
-    router.onAfterRouteChange = () => {
-      setTimeout(() => {
-        mermaidRenderer.renderMermaidDiagrams();
-      }, 300); // Add delay after route change as well
-    };
+    if (typeof window !== "undefined") {
+      // Handle route changes
+      router.onAfterRouteChanged = () => {
+        setTimeout(() => {
+          ensureDiagramsRendered();
+        }, 300);
+      };
+    }
   },
 } satisfies Theme;
