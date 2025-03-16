@@ -1,69 +1,48 @@
 // https://vitepress.dev/guide/custom-theme
-import { h, onMounted } from "vue";
+import { h, defineComponent, ref, onMounted } from "vue";
 import type { Theme } from "vitepress";
 import DefaultTheme from "vitepress/theme";
 import "./style.css";
-import { MermaidRenderer } from "vitepress-mermaid-renderer";
+import MermaidWrapper from "./MermaidWrapper.vue";
 import "vitepress-mermaid-renderer/dist/style.css";
 
-const mermaidRenderer = MermaidRenderer.getInstance();
-
-// Ensure diagrams are rendered even if Vue lifecycle hooks miss them
-const ensureDiagramsRendered = () => {
-  if (typeof window !== "undefined" && document.querySelector(".mermaid")) {
-    mermaidRenderer.renderMermaidDiagrams();
-  }
-};
+// Create a hydration-safe layout wrapper
+const SafeLayout = defineComponent({
+  name: "SafeLayout",
+  setup() {
+    const mounted = ref(false);
+    onMounted(() => {
+      mounted.value = true;
+    });
+    return { mounted };
+  },
+  render() {
+    return h(DefaultTheme.Layout, null, {
+      "page-top": () => (this.mounted ? h(MermaidWrapper) : null),
+    });
+  },
+});
 
 export default {
   extends: DefaultTheme,
-  Layout: () => {
+  Layout: SafeLayout,
+  enhanceApp({ app, router }) {
     if (typeof window !== "undefined") {
-      // Handle initial page load
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", () => {
-          mermaidRenderer.initialize();
-          ensureDiagramsRendered();
-        });
-      } else {
-        mermaidRenderer.initialize();
-        ensureDiagramsRendered();
-      }
+      // Register wrapper globally for use in markdown
+      app.component("ClientOnly", MermaidWrapper);
 
-      onMounted(() => {
-        // Wait for page hydration to complete
-        setTimeout(() => {
-          ensureDiagramsRendered();
-
-          // Set up observer for dynamic content changes
-          const observer = new MutationObserver((mutations) => {
-            if (document.querySelector(".mermaid")) {
-              requestAnimationFrame(() => {
-                ensureDiagramsRendered();
-              });
-            }
-          });
-
-          // Observe the entire document for any mermaid content
-          observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-            attributes: false,
-            characterData: false,
-          });
-        }, 300);
-      });
-    }
-
-    return h(DefaultTheme.Layout, null, {});
-  },
-  enhanceApp({ router }) {
-    if (typeof window !== "undefined") {
       // Handle route changes
-      router.onAfterRouteChanged = () => {
-        setTimeout(() => {
-          ensureDiagramsRendered();
-        }, 300);
+      router.onAfterRouteChange = () => {
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(() => {
+          const mermaidBlocks = document.querySelectorAll(".language-mermaid");
+          if (mermaidBlocks.length > 0) {
+            // Force re-render of any existing wrappers using class instead of component name
+            document.querySelectorAll(".mermaid-wrapper").forEach((wrapper) => {
+              wrapper.dispatchEvent(new Event("remount"));
+            });
+          }
+        });
       };
     }
   },
