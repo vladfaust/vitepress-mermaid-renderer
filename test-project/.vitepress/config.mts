@@ -88,10 +88,7 @@ export default defineConfig({
     sidebar: [
       {
         text: "Guide",
-        items: [
-          { text: "Getting Started", link: "/guide/getting-started" },
-          { text: "Configuration", link: "/guide/configuration" },
-        ],
+        items: [{ text: "Getting Started", link: "/guide/getting-started" }],
       },
       {
         text: "Examples",

@@ -32,6 +32,7 @@ export default defineConfig({
         },
       },
     },
+    cssMinify: true,
     cssCodeSplit: false,
     outDir: "dist",
     emptyOutDir: true,

@@ -1,6 +1,5 @@
 # VitePress Mermaid Renderer 🎨
 
-[![npm version](https://badge.fury.io/js/vitepress-mermaid-renderer.svg)](https://www.npmjs.com/package/vitepress-mermaid-renderer)
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://vitepress-mermaid-renderer.vercel.app/)
 
 Transform your static Mermaid diagrams into interactive, dynamic visualizations in VitePress! This powerful plugin brings life to your documentation by enabling interactive features like zooming, panning, and fullscreen viewing.
@@ -42,7 +41,7 @@ Your `.vitepress/config.ts` file is need to look like this:
 
 ```typescript
 // https://vitepress.dev/guide/custom-theme
-import { h } from "vue";
+import { h, nextTick } from "vue";
 import type { Theme } from "vitepress";
 import DefaultTheme from "vitepress/theme";
 import "./style.css";
@@ -52,23 +51,14 @@ import "vitepress-mermaid-renderer/dist/style.css";
 export default {
   extends: DefaultTheme,
   Layout: () => {
-    return h(DefaultTheme.Layout, null, {
-      // https://vitepress.dev/guide/extending-default-theme#layout-slots
-    });
+    return h(DefaultTheme.Layout, null, {});
   },
   enhanceApp({ app, router, siteData }) {
     const mermaidRenderer = MermaidRenderer.getInstance();
-    // const mermaidRenderer = MermaidRenderer.getInstance({
-    // 	timeline: {
-    // 		activationWidth: 10,
-    // 	},
-    // });
-    // Render mermaid diagrams on page load
-    mermaidRenderer.renderMermaidDiagrams();
-    // Add router hook to render mermaid diagrams after navigation
+    mermaidRenderer.initialize();
+
     router.onAfterRouteChange = () => {
-      // Wait for DOM to update
-      setTimeout(() => mermaidRenderer.renderMermaidDiagrams(), 100);
+      nextTick(() => mermaidRenderer.renderMermaidDiagrams());
     };
   },
 } satisfies Theme;

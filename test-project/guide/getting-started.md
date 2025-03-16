@@ -26,12 +26,14 @@ bun add vitepress-mermaid-renderer
 
 ## Setup
 
-1. Update your VitePress theme configuration (`.vitepress/theme/index.ts`):
+1. Your `.vitepress/config.ts` file is need to look like this:
 
-```ts
-import { h } from "vue";
+```typescript
+// https://vitepress.dev/guide/custom-theme
+import { h, nextTick } from "vue";
 import type { Theme } from "vitepress";
 import DefaultTheme from "vitepress/theme";
+import "./style.css";
 import { MermaidRenderer } from "vitepress-mermaid-renderer";
 import "vitepress-mermaid-renderer/dist/style.css";
 
@@ -42,10 +44,10 @@ export default {
   },
   enhanceApp({ app, router, siteData }) {
     const mermaidRenderer = MermaidRenderer.getInstance();
+    mermaidRenderer.initialize();
 
-    // Add router hook to render mermaid diagrams after navigation
     router.onAfterRouteChange = () => {
-      setTimeout(() => mermaidRenderer.renderMermaidDiagrams(), 100);
+      nextTick(() => mermaidRenderer.renderMermaidDiagrams());
     };
   },
 } satisfies Theme;
@@ -64,7 +66,7 @@ B -->|Yes| C[OK]
 B -->|No| D[NOT OK]
 \`\`\`
 
-This will render an interactive diagram with zoom, pan, and fullscreen controls.
+This will render an interactive diagram with zoom, pan, reset view and fullscreen controls.
 
 ## Configuration
 
