@@ -194,6 +194,22 @@
       </div>
     </div>
 
+    <!-- Error display -->
+    <div v-if="renderError" class="diagram-error">
+      <div class="error-message">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>Failed to render diagram</span>
+        <button @click="toggleErrorDetails" class="error-toggle-button">
+          {{ showErrorDetails ? 'Hide Details' : 'Show Details' }}
+        </button>
+      </div>
+      <pre v-if="showErrorDetails" class="error-details">{{ renderErrorDetails }}</pre>
+    </div>
+
     <div
       class="diagram-wrapper"
       ref="diagramWrapper"
@@ -202,6 +218,9 @@
       @mouseup="endPan"
       @mouseleave="endPan"
       @wheel.prevent="handleWheel"
+      @touchstart="handleTouchStart"
+      @touchmove="handleTouchMove"
+      @touchend="handleTouchEnd"
     >
       <div
         :id="id"
@@ -227,6 +246,11 @@ const props = defineProps<{
   code: string;
   config?: MermaidConfig;
 }>();
+
+// Error handling states
+const renderError = ref(false);
+const renderErrorDetails = ref('');
+const showErrorDetails = ref(false);
 
 // Initialize mermaid with default or provided config
 onMounted(() => {
@@ -286,11 +310,19 @@ onMounted(() => {
 
 const showCopied = ref(false);
 const controls = ref<HTMLElement | null>(null);
+const mobileControls = ref<HTMLElement | null>(null);
 const diagramWrapper = ref<HTMLElement | null>(null);
 const isFullscreen = ref(false);
 
+const toggleErrorDetails = () => {
+  showErrorDetails.value = !showErrorDetails.value;
+};
+
 const copyDiagramCode = async () => {
   try {
+    if (!navigator.clipboard) {
+      throw new Error('Clipboard API not available in this browser.');
+    }
     await navigator.clipboard.writeText(props.code);
     showCopied.value = true;
     setTimeout(() => {
@@ -298,6 +330,8 @@ const copyDiagramCode = async () => {
     }, 1000);
   } catch (err) {
     console.error("Failed to copy diagram code:", err);
+    // Show user feedback for clipboard error
+    alert('Failed to copy to clipboard. Your browser might not support this feature.');
   }
 };
 
@@ -311,12 +345,20 @@ const lastX = ref(0);
 const lastY = ref(0);
 const originalDiagramSize = ref({ width: 0, height: 0 });
 
+// Touch event variables
+const initialTouchDistance = ref(0);
+const touchPanning = ref(false);
+const lastTouchX = ref(0);
+const lastTouchY = ref(0);
+
 const zoomIn = () => {
   scale.value = scale.value * 1.2;
 };
 
 const zoomOut = () => {
-  scale.value = scale.value / 1.2;
+  if (scale.value > 0.2) { // Prevent extreme zooming out
+    scale.value = scale.value / 1.2;
+  }
 };
 
 const resetView = () => {
@@ -326,12 +368,35 @@ const resetView = () => {
 };
 
 const toggleFullscreen = () => {
-  if (!document.fullscreenElement) {
-    diagramWrapper.value?.requestFullscreen();
-    isFullscreen.value = true;
-  } else {
-    document.exitFullscreen();
-    isFullscreen.value = false;
+  try {
+    if (!document.fullscreenElement) {
+      if (diagramWrapper.value?.requestFullscreen) {
+        diagramWrapper.value.requestFullscreen();
+      } else if ((diagramWrapper.value as any)?.webkitRequestFullscreen) {
+        (diagramWrapper.value as any).webkitRequestFullscreen();
+      } else if ((diagramWrapper.value as any)?.mozRequestFullScreen) {
+        (diagramWrapper.value as any).mozRequestFullScreen();
+      } else if ((diagramWrapper.value as any)?.msRequestFullscreen) {
+        (diagramWrapper.value as any).msRequestFullscreen();
+      } else {
+        throw new Error('Fullscreen API not available');
+      }
+      isFullscreen.value = true;
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).mozCancelFullScreen) {
+        (document as any).mozCancelFullScreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
+      isFullscreen.value = false;
+    }
+  } catch (err) {
+    console.error("Fullscreen error:", err);
+    alert('Fullscreen mode is not supported in this browser.');
   }
 };
 
@@ -358,12 +423,79 @@ const endPan = () => {
   isPanning.value = false;
 };
 
+// Touch event handlers
+const handleTouchStart = (e: TouchEvent) => {
+  if (e.touches.length === 1) {
+    // Single touch - pan
+    touchPanning.value = true;
+    lastTouchX.value = e.touches[0].clientX;
+    lastTouchY.value = e.touches[0].clientY;
+  } else if (e.touches.length === 2) {
+    // Two touches - pinch zoom
+    touchPanning.value = false;
+    const touch1 = e.touches[0];
+    const touch2 = e.touches[1];
+    initialTouchDistance.value = Math.hypot(
+      touch2.clientX - touch1.clientX, 
+      touch2.clientY - touch1.clientY
+    );
+  }
+};
+
+const handleTouchMove = (e: TouchEvent) => {
+  e.preventDefault(); // Prevent scrolling while interacting with diagram
+  
+  if (touchPanning.value && e.touches.length === 1) {
+    // Handle panning
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - lastTouchX.value;
+    const deltaY = touch.clientY - lastTouchY.value;
+    
+    translateX.value += deltaX / scale.value;
+    translateY.value += deltaY / scale.value;
+    
+    lastTouchX.value = touch.clientX;
+    lastTouchY.value = touch.clientY;
+  } else if (e.touches.length === 2) {
+    // Handle pinch zooming
+    const touch1 = e.touches[0];
+    const touch2 = e.touches[1];
+    const currentDistance = Math.hypot(
+      touch2.clientX - touch1.clientX, 
+      touch2.clientY - touch1.clientY
+    );
+    
+    if (initialTouchDistance.value > 0) {
+      const zoomRatio = currentDistance / initialTouchDistance.value;
+      
+      // Apply a dampening factor to make zooming less sensitive
+      const newScale = scale.value * (1 + (zoomRatio - 1) * 0.2);
+      
+      // Limit scale to reasonable bounds
+      if (newScale >= 0.2 && newScale <= 10) {
+        scale.value = newScale;
+      }
+      
+      initialTouchDistance.value = currentDistance;
+    }
+  }
+};
+
+const handleTouchEnd = () => {
+  touchPanning.value = false;
+  initialTouchDistance.value = 0;
+};
+
 const handleWheel = (e: WheelEvent) => {
   if (e.ctrlKey) {
     // Zoom
     const delta = -Math.sign(e.deltaY) * 0.1;
     const newScale = scale.value * (1 + delta);
-    scale.value = newScale;
+    
+    // Apply bounds to prevent extreme zooming
+    if (newScale >= 0.2 && newScale <= 10) {
+      scale.value = newScale;
+    }
   } else {
     // Pan
     translateX.value += -e.deltaX / scale.value;
@@ -391,16 +523,26 @@ const panRight = () => {
 
 // Track fullscreen changes to update controls visibility
 const updateFullscreenControls = () => {
-  if (document.fullscreenElement) {
-    isFullscreen.value = true;
-    if (controls.value) {
-      controls.value.classList.add("force-show");
+  try {
+    if (document.fullscreenElement) {
+      isFullscreen.value = true;
+      if (controls.value) {
+        controls.value.classList.add("force-show");
+      }
+      if (mobileControls.value) {
+        mobileControls.value.classList.add("force-show");
+      }
+    } else {
+      isFullscreen.value = false;
+      if (controls.value) {
+        controls.value.classList.remove("force-show");
+      }
+      if (mobileControls.value) {
+        mobileControls.value.classList.remove("force-show");
+      }
     }
-  } else {
-    isFullscreen.value = false;
-    if (controls.value) {
-      controls.value.classList.remove("force-show");
-    }
+  } catch (err) {
+    console.error("Error updating fullscreen controls:", err);
   }
 };
 
@@ -411,37 +553,67 @@ onMounted(async () => {
       controls.value.style.opacity = "1";
       controls.value.style.visibility = "visible";
     }
-
-    const element = document.getElementById(id);
-    if (!element) return;
-
-    await mermaid.run({
-      nodes: [element],
-      suppressErrors: true,
-    });
-
-    isRendered.value = true;
-
-    // Store original diagram size for "fit screen" functionality
-    if (element.firstElementChild) {
-      const svgElement = element.querySelector("svg");
-      if (svgElement) {
-        originalDiagramSize.value = {
-          width: svgElement.getBoundingClientRect().width,
-          height: svgElement.getBoundingClientRect().height,
-        };
-      }
+    
+    if (mobileControls.value) {
+      mobileControls.value.style.opacity = "1";
+      mobileControls.value.style.visibility = "visible";
     }
 
-    // Add fullscreen change event listener
+    const element = document.getElementById(id);
+    if (!element) {
+      throw new Error("Failed to find diagram container element");
+    }
+
+    try {
+      await mermaid.run({
+        nodes: [element],
+        suppressErrors: false, // changed to false to catch errors
+      });
+
+      isRendered.value = true;
+      renderError.value = false;
+
+      // Store original diagram size for "fit screen" functionality
+      if (element.firstElementChild) {
+        const svgElement = element.querySelector("svg");
+        if (svgElement) {
+          originalDiagramSize.value = {
+            width: svgElement.getBoundingClientRect().width,
+            height: svgElement.getBoundingClientRect().height,
+          };
+        }
+      }
+    } catch (error) {
+      console.error("Failed to render mermaid diagram:", error);
+      renderError.value = true;
+      renderErrorDetails.value = error instanceof Error 
+        ? error.toString()
+        : 'Unknown error rendering diagram';
+      
+      // Still mark as rendered to display the error message
+      isRendered.value = true;
+    }
+
+    // Add fullscreen change event listeners with cross-browser support
     document.addEventListener("fullscreenchange", updateFullscreenControls);
+    document.addEventListener("webkitfullscreenchange", updateFullscreenControls);
+    document.addEventListener("mozfullscreenchange", updateFullscreenControls);
+    document.addEventListener("MSFullscreenChange", updateFullscreenControls);
+    
   } catch (error) {
-    console.error("Failed to render mermaid diagram:", error);
+    console.error("Error in component initialization:", error);
+    renderError.value = true;
+    renderErrorDetails.value = error instanceof Error 
+      ? error.toString()
+      : 'Unknown error initializing component';
   }
 });
 
-// Clean up event listener
+// Clean up event listeners
 onUnmounted(() => {
   document.removeEventListener("fullscreenchange", updateFullscreenControls);
+  document.removeEventListener("webkitfullscreenchange", updateFullscreenControls);
+  document.removeEventListener("mozfullscreenchange", updateFullscreenControls);
+  document.removeEventListener("MSFullscreenChange", updateFullscreenControls);
 });
 </script>

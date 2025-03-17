@@ -100,24 +100,88 @@ export class MermaidRenderer {
   }
 
   public initialize(): void {
-    if (this.initialized || !isBrowser) return;
+    try {
+      if (this.initialized) {
+        console.debug("MermaidRenderer already initialized");
+        return;
+      }
 
-    // Wait for DOM to be ready
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () =>
-        this.initializeRenderer(),
+      if (!isBrowser) {
+        console.debug(
+          "MermaidRenderer initialization skipped: non-browser environment",
+        );
+        return;
+      }
+
+      const initOnReady = (): void => {
+        if (!document || !document.body) {
+          console.warn(
+            "MermaidRenderer initialization failed: document or body not available",
+          );
+          return;
+        }
+
+        // Ensure initialization runs after microtasks and DOM updates
+        Promise.resolve().then(() => {
+          requestAnimationFrame(() => {
+            try {
+              this.initializeRenderer();
+            } catch (error) {
+              console.error(
+                "Failed to initialize MermaidRenderer:",
+                error instanceof Error ? error.message : "Unknown error",
+              );
+            }
+          });
+        });
+      };
+
+      // Handle different document ready states
+      switch (document.readyState) {
+        case "loading":
+          document.addEventListener("DOMContentLoaded", initOnReady, {
+            once: true,
+          });
+          break;
+        case "interactive":
+        case "complete":
+          initOnReady();
+          break;
+        default:
+          console.warn(
+            `MermaidRenderer: Unexpected document.readyState: ${document.readyState}`,
+          );
+          initOnReady();
+      }
+
+      // Set up route change listeners with error handling
+      const handleRouteChangeWithErrorBoundary = () => {
+        try {
+          this.handleRouteChange();
+        } catch (error) {
+          console.error(
+            "Error handling route change:",
+            error instanceof Error ? error.message : "Unknown error",
+          );
+        }
+      };
+
+      window.addEventListener("popstate", handleRouteChangeWithErrorBoundary);
+      document.addEventListener(
+        "vitepress:routeChanged",
+        handleRouteChangeWithErrorBoundary,
       );
-    } else {
-      this.initializeRenderer();
+
+      this.initialized = true;
+      console.debug("MermaidRenderer initialization complete");
+    } catch (error) {
+      console.error(
+        "Critical error during MermaidRenderer initialization:",
+        error instanceof Error ? error.message : "Unknown error",
+      );
+      // Avoid setting initialized flag if initialization fails
+      throw error; // Re-throw to allow upstream error handling
     }
-
-    // Listen for VitePress route changes
-    window.addEventListener("popstate", () => this.handleRouteChange());
-    document.addEventListener("vitepress:routeChanged", () =>
-      this.handleRouteChange(),
-    );
-
-    this.initialized = true;
   }
 
   private initializeRenderer(): void {
