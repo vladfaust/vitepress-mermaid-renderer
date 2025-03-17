@@ -1,37 +1,22 @@
-import { h, nextTick, onMounted } from "vue";
+// https://vitepress.dev/guide/custom-theme
+import { h, nextTick } from "vue";
 import type { Theme } from "vitepress";
 import DefaultTheme from "vitepress/theme";
+import "./style.css";
 import { MermaidRenderer } from "vitepress-mermaid-renderer";
 import "vitepress-mermaid-renderer/dist/style.css";
 
 export default {
   extends: DefaultTheme,
   Layout: () => {
-    return h(DefaultTheme.Layout, null, {
-      // Add layout slots if needed
-    });
+    return h(DefaultTheme.Layout, null, {});
   },
-  enhanceApp({ app, router }) {
-    if (typeof window !== 'undefined') {
-      const mermaidRenderer = MermaidRenderer.getInstance();
-      
-      // Register a global component to handle initialization
-      app.component('MermaidInitializer', {
-        setup() {
-          onMounted(() => {
-            mermaidRenderer.initialize();
-            mermaidRenderer.renderMermaidDiagrams();
-          });
-          return () => null;
-        }
-      });
+  enhanceApp({ app, router, siteData }) {
+    const mermaidRenderer = MermaidRenderer.getInstance();
+    mermaidRenderer.initialize();
 
-      // Enhanced route change handling
-      router.onAfterRouteChange = () => {
-        nextTick(() => {
-          mermaidRenderer.renderMermaidDiagrams();
-        });
-      };
-    }
+    router.onAfterRouteChange = () => {
+      nextTick(() => mermaidRenderer.renderMermaidDiagrams());
+    };
   },
 } satisfies Theme;

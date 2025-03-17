@@ -2,21 +2,6 @@ import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  vite: {
-    optimizeDeps: {
-      include: ['mermaid']
-    },
-    ssr: {
-      noExternal: ['vitepress-mermaid-renderer']
-    },
-    build: {
-      rollupOptions: {
-        output: {
-          assetFileNames: 'assets/[name].[hash].[ext]'
-        }
-      }
-    }
-  },
   title: "VitePress Mermaid Renderer",
   description:
     "A VitePress plugin to render Mermaid diagrams with interactive controls",
@@ -59,13 +44,6 @@ export default defineConfig({
     ],
     ["meta", { name: "author", content: "sametcn99" }],
     ["link", { rel: "icon", type: "image/png", href: "/favicon.png" }],
-    ["link", { 
-      rel: "preload", 
-      as: "font",
-      type: "font/woff2",
-      href: "/assets/fonts/inter-roman-latin.woff2",
-      crossorigin: "anonymous"
-    }]
   ],
 
   themeConfig: {
