@@ -12,7 +12,8 @@ export class MermaidRenderer {
   private observer: MutationObserver | null = null;
   private initialized = false;
   private renderAttempts = 0;
-  private maxRenderAttempts = 5;
+  private maxRenderAttempts = 10; // Increased from 5 to 10
+  private retryTimeout: NodeJS.Timeout | null = null;
 
   private constructor(config?: MermaidConfig) {
     this.config = config || {};
@@ -103,41 +104,58 @@ export class MermaidRenderer {
 
     // Wait for DOM to be ready
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => {
-        this.renderWithRetry();
-      });
+      document.addEventListener("DOMContentLoaded", () =>
+        this.initializeRenderer(),
+      );
     } else {
-      this.renderWithRetry();
+      this.initializeRenderer();
     }
+
+    // Listen for VitePress route changes
+    window.addEventListener("popstate", () => this.handleRouteChange());
+    document.addEventListener("vitepress:routeChanged", () =>
+      this.handleRouteChange(),
+    );
 
     this.initialized = true;
   }
 
-  private renderWithRetry(): void {
-    // First attempt to render
-    this.renderMermaidDiagrams();
-
-    // Set up retries with increasing delays if no diagrams were found
-    // This helps when the content loads after a delay (common in SPAs)
-    this.renderAttempts = 1;
-    const retryRender = () => {
-      if (this.renderAttempts < this.maxRenderAttempts) {
-        setTimeout(() => {
-          this.renderMermaidDiagrams();
-          this.renderAttempts++;
-          retryRender();
-        }, this.renderAttempts * 200); // Increasing delay: 200ms, 400ms, 600ms, 800ms
-      }
-    };
-
-    retryRender();
+  private initializeRenderer(): void {
+    this.renderAttempts = 0;
+    this.renderWithRetry();
   }
 
-  public renderMermaidDiagrams(): void {
-    if (!isBrowser) return;
+  private handleRouteChange(): void {
+    // Reset attempts and start fresh on route change
+    this.renderAttempts = 0;
+    if (this.retryTimeout) {
+      clearTimeout(this.retryTimeout);
+    }
+    this.renderWithRetry();
+  }
+
+  private renderWithRetry(): void {
+    // First attempt to render
+    const diagramsFound = this.renderMermaidDiagrams();
+
+    // If no diagrams found and we haven't exceeded max attempts, retry with exponential backoff
+    if (!diagramsFound && this.renderAttempts < this.maxRenderAttempts) {
+      const backoffTime = Math.min(
+        1000 * Math.pow(1.5, this.renderAttempts),
+        10000,
+      ); // Max 10 seconds
+      this.retryTimeout = setTimeout(() => {
+        this.renderAttempts++;
+        this.renderWithRetry();
+      }, backoffTime);
+    }
+  }
+
+  public renderMermaidDiagrams(): boolean {
+    if (!isBrowser) return false;
 
     const mermaidWrappers = document.getElementsByClassName("language-mermaid");
-    if (mermaidWrappers.length === 0) return;
+    if (mermaidWrappers.length === 0) return false;
 
     // Cleanup wrappers
     Array.from(mermaidWrappers).forEach(this.cleanupMermaidWrapper);
@@ -151,5 +169,6 @@ export class MermaidRenderer {
       );
 
     mermaidElements.forEach((element) => this.renderMermaidDiagram(element));
+    return mermaidElements.length > 0;
   }
 }
