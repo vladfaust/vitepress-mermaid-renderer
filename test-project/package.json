@@ -30,6 +30,6 @@
     "format": "prettier --write \"**/*.{js,ts,vue,md}\""
   },
   "dependencies": {
-    "vitepress-mermaid-renderer": "^1.0.7"
+    "vitepress-mermaid-renderer": "^1.0.8"
   }
 }
