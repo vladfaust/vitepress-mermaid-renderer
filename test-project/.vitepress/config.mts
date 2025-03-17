@@ -2,6 +2,14 @@ import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  vite: {
+    optimizeDeps: {
+      include: ['mermaid']
+    },
+    ssr: {
+      noExternal: ['vitepress-mermaid-renderer']
+    }
+  },
   title: "VitePress Mermaid Renderer",
   description:
     "A VitePress plugin to render Mermaid diagrams with interactive controls",
