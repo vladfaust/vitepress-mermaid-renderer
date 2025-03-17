@@ -2,5 +2,14 @@
   "buildCommand": "npm run docs:build",
   "outputDirectory": ".vitepress/dist",
   "framework": "vitepress",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "continue": true
+    }
+  ]
 }

@@ -8,6 +8,13 @@ export default defineConfig({
     },
     ssr: {
       noExternal: ['vitepress-mermaid-renderer']
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          assetFileNames: 'assets/[name].[hash].[ext]'
+        }
+      }
     }
   },
   title: "VitePress Mermaid Renderer",
@@ -52,6 +59,13 @@ export default defineConfig({
     ],
     ["meta", { name: "author", content: "sametcn99" }],
     ["link", { rel: "icon", type: "image/png", href: "/favicon.png" }],
+    ["link", { 
+      rel: "preload", 
+      as: "font",
+      type: "font/woff2",
+      href: "/assets/fonts/inter-roman-latin.woff2",
+      crossorigin: "anonymous"
+    }]
   ],
 
   themeConfig: {
