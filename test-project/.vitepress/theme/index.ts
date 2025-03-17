@@ -20,22 +20,9 @@ export default {
         setup() {
           onMounted(() => {
             mermaidRenderer.initialize();
+            mermaidRenderer.renderMermaidDiagrams();
           });
           return () => null;
-        }
-      });
-
-      // Add the component to the app
-      app.mixin({
-        mounted() {
-          if (this.$root === this) {
-            const initializerEl = document.createElement('div');
-            document.body.appendChild(initializerEl);
-            const { createApp } = require('vue');
-            createApp({
-              render: () => h('MermaidInitializer')
-            }).mount(initializerEl);
-          }
         }
       });
 
