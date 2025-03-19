@@ -101,17 +101,8 @@ export class MermaidRenderer {
 
   public initialize(): void {
     try {
-      if (this.initialized) {
-        console.debug("MermaidRenderer already initialized");
-        return;
-      }
-
-      if (!isBrowser) {
-        console.debug(
-          "MermaidRenderer initialization skipped: non-browser environment",
-        );
-        return;
-      }
+      if (this.initialized) return;
+      if (!isBrowser) return;
 
       const initOnReady = (): void => {
         if (!document || !document.body) {
@@ -173,7 +164,6 @@ export class MermaidRenderer {
       );
 
       this.initialized = true;
-      console.debug("MermaidRenderer initialization complete");
     } catch (error) {
       console.error(
         "Critical error during MermaidRenderer initialization:",
