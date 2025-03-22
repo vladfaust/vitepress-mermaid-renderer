@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "mermaid": "^11.5.0",
-    "vitepress-mermaid-renderer": "../vitepress-mermaid-renderer-1.0.13.tgz"
+    "vitepress-mermaid-renderer": "^1.0.13"
   },
   "engines": {
     "node": ">=16.0.0"
