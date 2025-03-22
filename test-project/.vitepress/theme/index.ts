@@ -11,22 +11,23 @@ export default {
   Layout: () => {
     return h(DefaultTheme.Layout, null, {
       // Add a mounted hook to ensure diagrams render on initial page load
-      'layout-top': () => h({
-        setup() {
-          onMounted(() => {
-            // This will run when the component is mounted on initial page load
-            nextTick(() => {
-              const mermaidRenderer = createMermaidRenderer({
-                theme: "default",
-                securityLevel: "loose",
-                startOnLoad: false,
+      "layout-top": () =>
+        h({
+          setup() {
+            onMounted(() => {
+              // This will run when the component is mounted on initial page load
+              nextTick(() => {
+                const mermaidRenderer = createMermaidRenderer({
+                  theme: "default",
+                  securityLevel: "loose",
+                  startOnLoad: false,
+                });
+                mermaidRenderer.renderMermaidDiagrams();
               });
-              mermaidRenderer.renderMermaidDiagrams();
             });
-          });
-          return () => null;
-        }
-      })
+            return () => null;
+          },
+        }),
     });
   },
   enhanceApp({ app, router }) {

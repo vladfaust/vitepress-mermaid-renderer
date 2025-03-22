@@ -6,8 +6,16 @@ import { MermaidConfig } from "mermaid";
 // Enhanced browser detection
 const isBrowser =
   typeof window !== "undefined" &&
-  typeof document !== "undefined" && 
+  typeof document !== "undefined" &&
   typeof document.createElement === "function";
+
+// Custom type for HTMLCollection-like objects
+interface HTMLCollectionLike<T extends Element> {
+  length: number;
+  item(index: number): T;
+  [index: number]: T;
+  [Symbol.iterator](): IterableIterator<T>;
+}
 
 export class MermaidRenderer {
   private static instance: MermaidRenderer;
@@ -15,30 +23,78 @@ export class MermaidRenderer {
   private observer: MutationObserver | null = null;
   private initialized = false;
   private renderAttempts = 0;
-  private maxRenderAttempts = 10; // Increased from 5 to 10
+  private maxRenderAttempts = 15; // Increased to handle slower production environments
   private retryTimeout: NodeJS.Timeout | null = null;
   private isClient: boolean;
   private renderQueue: HTMLPreElement[] = [];
   private isRendering = false;
+  private initialPageRenderComplete = false;
+  private hydrationComplete = false;
+  private domContentLoaded = false;
+  private windowLoaded = false;
 
   private constructor(config?: MermaidConfig) {
     this.config = config || {};
     this.isClient = isBrowser;
-    
+
     if (this.isClient) {
       this.setupMutationObserver();
+      this.setupHydrationListeners();
     }
   }
 
   public static getInstance(config?: MermaidConfig): MermaidRenderer {
     if (!MermaidRenderer.instance) {
       MermaidRenderer.instance = new MermaidRenderer(config);
+    } else if (config) {
+      MermaidRenderer.instance.setConfig(config);
     }
     return MermaidRenderer.instance;
   }
 
   public setConfig(config: MermaidConfig): void {
-    this.config = config;
+    this.config = { ...this.config, ...config };
+  }
+
+  private setupHydrationListeners(): void {
+    if (!this.isClient) return;
+
+    // Listen for DOMContentLoaded event
+    if (document.readyState === "loading") {
+      document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+          this.domContentLoaded = true;
+          this.tryRender("DOMContentLoaded");
+        },
+        { once: true },
+      );
+    } else {
+      this.domContentLoaded = true;
+    }
+
+    // Listen for window load event
+    window.addEventListener(
+      "load",
+      () => {
+        this.windowLoaded = true;
+        this.tryRender("window.load");
+      },
+      { once: true },
+    );
+
+    // Additional safety - if all else fails, try rendering after a delay
+    setTimeout(() => {
+      if (!this.initialPageRenderComplete) {
+        this.tryRender("safety-timeout");
+      }
+    }, 2000);
+  }
+
+  private tryRender(source: string): void {
+    if (this.initialPageRenderComplete) return;
+
+    this.renderWithRetry();
   }
 
   private setupMutationObserver(): void {
@@ -54,7 +110,9 @@ export class MermaidRenderer {
             Array.from(mutation.addedNodes).some(
               (node) =>
                 node.nodeType === Node.ELEMENT_NODE &&
-                (node as Element).querySelector?.(".language-mermaid") !== null,
+                ((node as Element).querySelector?.(".language-mermaid") !==
+                  null ||
+                  (node as Element).classList?.contains("language-mermaid")),
             ),
         );
 
@@ -81,10 +139,11 @@ export class MermaidRenderer {
 
   private createMermaidComponent(code: string) {
     if (!this.isClient) return null;
-    
+
     try {
       const wrapper = document.createElement("div");
-      wrapper.id = `${Math.random().toString(36).slice(2)}`;
+      wrapper.id = `mermaid-wrapper-${Math.random().toString(36).slice(2)}`;
+      wrapper.className = "mermaid-wrapper";
       return {
         wrapper,
         component: h(MermaidDiagram, { code, config: this.config }),
@@ -115,12 +174,16 @@ export class MermaidRenderer {
     // Continue with next diagram if any
     if (this.renderQueue.length > 0) {
       await this.renderNextDiagram();
+    } else if (!this.initialPageRenderComplete) {
+      // Mark initial page rendering as complete
+      this.initialPageRenderComplete = true;
+      this.hydrationComplete = true;
     }
   }
 
   private async renderMermaidDiagram(element: HTMLPreElement): Promise<void> {
     if (!this.isClient) return;
-    
+
     try {
       if (!element || !element.parentNode) return;
       const code = element.textContent?.trim() || "";
@@ -136,9 +199,9 @@ export class MermaidRenderer {
         createApp({
           render: () => component,
         }).mount(wrapper);
-        
-        // Give some time for the diagram to render
-        setTimeout(resolve, 100);
+
+        // Give more time for the diagram to render in production environments
+        setTimeout(resolve, 200);
       });
     } catch (error) {
       console.error("Failed to render mermaid diagram:", error);
@@ -147,7 +210,7 @@ export class MermaidRenderer {
 
   public initialize(): void {
     if (this.initialized || !this.isClient) return;
-    
+
     try {
       const initOnReady = (): void => {
         if (!document || !document.body) {
@@ -159,6 +222,7 @@ export class MermaidRenderer {
 
         // Ensure initialization runs after microtasks and DOM updates
         Promise.resolve().then(() => {
+          // Use requestAnimationFrame for better timing with the browser's rendering cycle
           requestAnimationFrame(() => {
             try {
               this.initializeRenderer();
@@ -208,6 +272,22 @@ export class MermaidRenderer {
         handleRouteChangeWithErrorBoundary,
       );
 
+      // Listen for VitePress theme ready event
+      document.addEventListener(
+        "vitepress:ready",
+        () => {
+          this.renderWithRetry();
+        },
+        { once: true },
+      );
+
+      // Special handling for deployment
+      if (typeof window !== "undefined") {
+        setTimeout(() => {
+          this.renderWithRetry();
+        }, 500);
+      }
+
       this.initialized = true;
     } catch (error) {
       console.error(
@@ -221,14 +301,17 @@ export class MermaidRenderer {
 
   private initializeRenderer(): void {
     this.renderAttempts = 0;
+    this.initialPageRenderComplete = false;
     this.renderWithRetry();
   }
 
   private handleRouteChange(): void {
     // Reset attempts and start fresh on route change
     this.renderAttempts = 0;
+    this.initialPageRenderComplete = false;
     if (this.retryTimeout) {
       clearTimeout(this.retryTimeout);
+      this.retryTimeout = null;
     }
     this.renderWithRetry();
   }
@@ -239,10 +322,16 @@ export class MermaidRenderer {
 
     // If no diagrams found and we haven't exceeded max attempts, retry with exponential backoff
     if (!diagramsFound && this.renderAttempts < this.maxRenderAttempts) {
+      // More aggressive retry strategy, starting with shorter intervals
       const backoffTime = Math.min(
-        1000 * Math.pow(1.5, this.renderAttempts),
+        300 * Math.pow(1.4, this.renderAttempts),
         10000,
       ); // Max 10 seconds
+
+      if (this.retryTimeout) {
+        clearTimeout(this.retryTimeout);
+      }
+
       this.retryTimeout = setTimeout(() => {
         this.renderAttempts++;
         this.renderWithRetry();
@@ -253,26 +342,90 @@ export class MermaidRenderer {
   public renderMermaidDiagrams(): boolean {
     if (!this.isClient) return false;
     try {
-      const mermaidWrappers = document.getElementsByClassName("language-mermaid");
+      // First try to find diagrams using the standard class
+      let mermaidWrappers = document.getElementsByClassName("language-mermaid");
+
+      // If no diagrams found, try an alternative selector that might work in SSR context
+      if (mermaidWrappers.length === 0) {
+        const preElements = document.querySelectorAll("pre");
+        const filteredElements = Array.from(preElements).filter((el) => {
+          // Check if this pre element contains mermaid code
+          const codeElement = el.querySelector("code");
+          if (
+            codeElement &&
+            (codeElement.className.includes("mermaid") ||
+              codeElement.className.includes("language-mermaid"))
+          ) {
+            return true;
+          }
+          return false;
+        });
+
+        if (filteredElements.length > 0) {
+          // Create a proper array-like object that TypeScript can understand
+          const customCollection: HTMLCollectionOf<Element> = {
+            length: filteredElements.length,
+            item(i: number) {
+              return i >= 0 && i < filteredElements.length
+                ? filteredElements[i]
+                : null;
+            },
+            namedItem(name: string) {
+              return null; // We don't support named items in our custom collection
+            },
+            // Implement Symbol.iterator directly on the object
+            [Symbol.iterator]: function* (): IterableIterator<Element> {
+              for (let i = 0; i < this.length; i++) {
+                const element = this.item(i);
+                if (element) {
+                  yield element;
+                }
+              }
+            },
+            // Add indexed access
+            ...filteredElements.reduce(
+              (acc, el, i) => ({ ...acc, [i]: el }),
+              {},
+            ),
+          };
+
+          mermaidWrappers = customCollection;
+        }
+      }
+
       if (mermaidWrappers.length === 0) return false;
 
       // Cleanup wrappers
-      Array.from(mermaidWrappers).forEach((wrapper) => this.cleanupMermaidWrapper(wrapper));
+      Array.from(mermaidWrappers).forEach((wrapper) =>
+        this.cleanupMermaidWrapper(wrapper),
+      );
 
       // Get all diagram elements
       const mermaidElements = Array.from(mermaidWrappers)
-        .map((wrapper) => wrapper.querySelector("pre"))
+        .map((wrapper) => {
+          // Try to find pre element directly
+          let preElement = wrapper.querySelector("pre");
+
+          // If not found and the wrapper itself is a pre element, use it
+          if (!preElement && wrapper.tagName.toLowerCase() === "pre") {
+            preElement = wrapper as HTMLPreElement;
+          }
+
+          return preElement;
+        })
         .filter(
           (element): element is HTMLPreElement =>
             element instanceof HTMLPreElement,
         );
 
       // Add diagrams to render queue
-      this.renderQueue.push(...mermaidElements);
+      if (mermaidElements.length > 0) {
+        this.renderQueue.push(...mermaidElements);
 
-      // Start rendering if not already in progress
-      if (!this.isRendering) {
-        this.renderNextDiagram();
+        // Start rendering if not already in progress
+        if (!this.isRendering) {
+          this.renderNextDiagram();
+        }
       }
 
       return mermaidElements.length > 0;

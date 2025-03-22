@@ -157,7 +157,6 @@ const emit = defineEmits<{
 const mounted = ref(false);
 
 const props = defineProps<{
-  
   code: string;
   config?: MermaidConfig;
 }>();
@@ -464,49 +463,39 @@ const updateFullscreenControls = () => {
   }
 };
 
-onMounted(async () => {
+const renderMermaidDiagram = async (retryCount = 0, maxRetries = 3): Promise<void> => {
   try {
-    // Set controls visible immediately
-    if (controls.value) {
-      controls.value.style.opacity = "1";
-      controls.value.style.visibility = "visible";
-    }
-
-    if (mobileControls.value) {
-      mobileControls.value.style.opacity = "1";
-      mobileControls.value.style.visibility = "visible";
-    }
-
-    // Use nextTick to ensure the DOM is updated
-    await nextTick();
-    
     let element = document.getElementById(id);
     if (!element) {
-      console.warn("Diagram container element not found on first attempt, retrying...");
-      // Add another small delay to give more time for the DOM to update
-      await new Promise(resolve => setTimeout(resolve, 50));
-      const retryElement = document.getElementById(id);
-      if (!retryElement) {
-        throw new Error("Failed to find diagram container element");
+      console.warn(`[Mermaid] Diagram container element not found, attempt ${retryCount + 1}/${maxRetries + 1}`);
+      if (retryCount < maxRetries) {
+        // Add a progressive delay before retrying
+        const delay = 100 * Math.pow(2, retryCount);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return renderMermaidDiagram(retryCount + 1, maxRetries);
       }
-      element = retryElement;
+      throw new Error("Failed to find diagram container element");
     }
 
+    // Add a class to indicate rendering is in progress
+    element.classList.add('mermaid-rendering');
+
     try {
-      // Add a class to indicate rendering is in progress
-      element.classList.add('mermaid-rendering');
-      
+      const isProduction =
+        typeof window !== 'undefined'
+
+
       await mermaid.run({
         nodes: [element],
         suppressErrors: false,
       });
 
-      // Add a small delay to ensure SVG is fully rendered
-      await new Promise(resolve => setTimeout(resolve, 50));
+      // Add a longer delay for production environments
+      await new Promise(resolve => setTimeout(resolve, isProduction ? 150 : 50));
 
       isRendered.value = true;
       renderError.value = false;
-      
+
       // Remove the rendering indicator class
       element.classList.remove('mermaid-rendering');
 
@@ -514,8 +503,8 @@ onMounted(async () => {
       if (element.firstElementChild) {
         const svgElement = element.querySelector("svg");
         if (svgElement) {
-          // Wait for SVG to be fully rendered
-          await new Promise(resolve => setTimeout(resolve, 50));
+          // Wait for SVG to be fully rendered, longer in production
+          await new Promise(resolve => setTimeout(resolve, isProduction ? 150 : 50));
           originalDiagramSize.value = {
             width: svgElement.getBoundingClientRect().width,
             height: svgElement.getBoundingClientRect().height,
@@ -531,16 +520,56 @@ onMounted(async () => {
       renderErrorDetails.value = error instanceof Error
         ? error.toString()
         : 'Unknown error rendering diagram';
-      
+
       // Still mark as rendered to display the error message
       isRendered.value = true;
-      
+
       // Remove the rendering indicator class
       element.classList.remove('mermaid-rendering');
-      
+
       // Emit error event
       emit('renderComplete', { id, success: false, error });
+
+      // In production, try one more time with a delay if this is the first error
+      const isProduction =
+        typeof window !== 'undefined'
+
+      if (isProduction && retryCount === 0) {
+        setTimeout(() => {
+          renderMermaidDiagram(retryCount + 1, maxRetries);
+        }, 1000);
+      }
     }
+  } catch (error) {
+    console.error("Error in diagram initialization:", error);
+    renderError.value = true;
+    renderErrorDetails.value = error instanceof Error
+      ? error.toString()
+      : 'Unknown error initializing component';
+
+    // Emit error event
+    emit('renderComplete', { id, success: false, error });
+  }
+};
+
+onMounted(async () => {
+  try {
+    // Set controls visible immediately 
+    if (controls.value) {
+      controls.value.style.opacity = "1";
+      controls.value.style.visibility = "visible";
+    }
+
+    if (mobileControls.value) {
+      mobileControls.value.style.opacity = "1";
+      mobileControls.value.style.visibility = "visible";
+    }
+
+    // Use nextTick to ensure the DOM is updated
+    await nextTick();
+
+    // Start the rendering process with retry capabilities
+    await renderMermaidDiagram();
 
     // Add fullscreen change event listeners with cross-browser support
     document.addEventListener("fullscreenchange", updateFullscreenControls);
@@ -554,7 +583,7 @@ onMounted(async () => {
     renderErrorDetails.value = error instanceof Error
       ? error.toString()
       : 'Unknown error initializing component';
-    
+
     // Emit error event
     emit('renderComplete', { id, success: false, error });
   }
