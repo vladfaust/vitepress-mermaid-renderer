@@ -4,24 +4,26 @@ import type { Theme } from "vitepress";
 import DefaultTheme from "vitepress/theme";
 import "./style.css";
 import { createMermaidRenderer } from "vitepress-mermaid-renderer";
-import "vitepress-mermaid-renderer/dist/style.css"; // This path will use the exports mapping in package.json
+import "vitepress-mermaid-renderer/dist/style.css";
 
 export default {
   extends: DefaultTheme,
   Layout: () => {
     return h(DefaultTheme.Layout, null, {});
   },
-  enhanceApp({ app, router, siteData }) {
+  enhanceApp({ app, router }) {
+    // Use client-only safe implementation
+    const mermaidRenderer = createMermaidRenderer({
+      theme: "default",
+      securityLevel: "loose",
+      startOnLoad: false,
+    });
+
+    mermaidRenderer.initialize();
+
     if (router) {
-      router.onAfterPageLoad = () => {
-        const mermaidRenderer = createMermaidRenderer();
-        mermaidRenderer.initialize();
-        mermaidRenderer.renderMermaidDiagrams();
-      };
       router.onAfterRouteChange = () => {
-        const mermaidRenderer = createMermaidRenderer();
-        mermaidRenderer.initialize();
-        mermaidRenderer.renderMermaidDiagrams();
+        nextTick(() => mermaidRenderer.renderMermaidDiagrams());
       };
     }
   },

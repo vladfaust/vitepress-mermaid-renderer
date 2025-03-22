@@ -5,6 +5,7 @@
       "name": "vitepress-mermaid-renderer-test",
       "dependencies": {
         "vitepress-mermaid-renderer": "../vitepress-mermaid-renderer-1.0.13.tgz",
+        "mermaid": "^11.5.0",
       },
       "devDependencies": {
         "vitepress": "^1.6.3",

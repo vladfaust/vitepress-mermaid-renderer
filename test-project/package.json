@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "author": "sametcn99",
   "main": "index.js",
-  "devDependencies": {
-    "vitepress": "^1.6.3"
-  },
+  "type": "module",
   "description": "Test project for vitepress-mermaid-renderer",
   "keywords": [
     "vitepress",
@@ -29,7 +27,14 @@
     "lint": "eslint . --ext .js,.ts,.vue",
     "format": "prettier --write \"**/*.{js,ts,vue,md}\""
   },
+  "devDependencies": {
+    "vitepress": "^1.6.3"
+  },
   "dependencies": {
-    "vitepress-mermaid-renderer": "^1.0.13"
+    "mermaid": "^11.5.0",
+    "vitepress-mermaid-renderer": "../vitepress-mermaid-renderer-1.0.13.tgz"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
