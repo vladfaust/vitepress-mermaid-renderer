@@ -12,10 +12,11 @@ export default {
     return h(DefaultTheme.Layout, null, {});
   },
   enhanceApp({ app, router, siteData }) {
-    // Use the client-safe wrapper instead of direct instance
     const mermaidRenderer = createMermaidRenderer();
-    mermaidRenderer.initialize();
-
+    router.onAfterPageLoad = () => {
+      mermaidRenderer.initialize();
+      mermaidRenderer.renderMermaidDiagrams();
+    };
     if (router) {
       router.onAfterRouteChange = () => {
         nextTick(() => mermaidRenderer.renderMermaidDiagrams());
