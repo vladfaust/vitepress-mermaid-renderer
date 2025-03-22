@@ -3,8 +3,11 @@ import { createApp } from "vue";
 import MermaidDiagram from "./MermaidDiagram.vue";
 import { MermaidConfig } from "mermaid";
 
+// Enhanced browser detection
 const isBrowser =
-  typeof window !== "undefined" && typeof document !== "undefined";
+  typeof window !== "undefined" &&
+  typeof document !== "undefined" && 
+  typeof document.createElement === "function";
 
 export class MermaidRenderer {
   private static instance: MermaidRenderer;
@@ -14,10 +17,15 @@ export class MermaidRenderer {
   private renderAttempts = 0;
   private maxRenderAttempts = 10; // Increased from 5 to 10
   private retryTimeout: NodeJS.Timeout | null = null;
+  private isClient: boolean;
+  private renderQueue: HTMLPreElement[] = [];
+  private isRendering = false;
 
   private constructor(config?: MermaidConfig) {
     this.config = config || {};
-    if (isBrowser) {
+    this.isClient = isBrowser;
+    
+    if (this.isClient) {
       this.setupMutationObserver();
     }
   }
@@ -34,54 +42,87 @@ export class MermaidRenderer {
   }
 
   private setupMutationObserver(): void {
-    if (!isBrowser) return;
+    if (!this.isClient) return;
 
-    // Create a mutation observer to detect when content is added to the page
-    this.observer = new MutationObserver((mutations) => {
-      // Check if any mutations include additions to the DOM that might contain mermaid code blocks
-      const shouldRender = mutations.some(
-        (mutation) =>
-          mutation.type === "childList" &&
-          Array.from(mutation.addedNodes).some(
-            (node) =>
-              node.nodeType === Node.ELEMENT_NODE &&
-              (node as Element).querySelector?.(".language-mermaid") !== null,
-          ),
-      );
+    try {
+      // Create a mutation observer to detect when content is added to the page
+      this.observer = new MutationObserver((mutations) => {
+        // Check if any mutations include additions to the DOM that might contain mermaid code blocks
+        const shouldRender = mutations.some(
+          (mutation) =>
+            mutation.type === "childList" &&
+            Array.from(mutation.addedNodes).some(
+              (node) =>
+                node.nodeType === Node.ELEMENT_NODE &&
+                (node as Element).querySelector?.(".language-mermaid") !== null,
+            ),
+        );
 
-      if (shouldRender) {
-        this.renderMermaidDiagrams();
-      }
-    });
+        if (shouldRender) {
+          this.renderMermaidDiagrams();
+        }
+      });
 
-    // Start observing the document with the configured parameters
-    this.observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
+      // Start observing the document with the configured parameters
+      this.observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+    } catch (error) {
+      console.error("Failed to setup MutationObserver:", error);
+    }
   }
 
   private cleanupMermaidWrapper(wrapper: Element): void {
-    if (!isBrowser) return;
+    if (!this.isClient) return;
     const button = wrapper.getElementsByClassName("copy");
     Array.from(button).forEach((element) => element.remove());
   }
 
   private createMermaidComponent(code: string) {
-    if (!isBrowser) return null;
-    const wrapper = document.createElement("div");
-    wrapper.id = `${Math.random().toString(36).slice(2)}`;
-    return {
-      wrapper,
-      component: h(MermaidDiagram, { code, config: this.config }),
-    };
+    if (!this.isClient) return null;
+    
+    try {
+      const wrapper = document.createElement("div");
+      wrapper.id = `${Math.random().toString(36).slice(2)}`;
+      return {
+        wrapper,
+        component: h(MermaidDiagram, { code, config: this.config }),
+      };
+    } catch (error) {
+      console.error("Failed to create mermaid component:", error);
+      return null;
+    }
   }
 
-  private renderMermaidDiagram(element: HTMLPreElement): void {
-    if (!isBrowser) return;
+  private async renderNextDiagram(): Promise<void> {
+    if (!this.isClient || this.renderQueue.length === 0 || this.isRendering) {
+      return;
+    }
+
+    this.isRendering = true;
+    const element = this.renderQueue.shift();
+
+    if (element) {
+      try {
+        await this.renderMermaidDiagram(element);
+      } catch (error) {
+        console.error("Failed to render diagram:", error);
+      }
+    }
+
+    this.isRendering = false;
+    // Continue with next diagram if any
+    if (this.renderQueue.length > 0) {
+      await this.renderNextDiagram();
+    }
+  }
+
+  private async renderMermaidDiagram(element: HTMLPreElement): Promise<void> {
+    if (!this.isClient) return;
+    
     try {
       if (!element || !element.parentNode) return;
-
       const code = element.textContent?.trim() || "";
       const result = this.createMermaidComponent(code);
       if (!result) return;
@@ -90,20 +131,24 @@ export class MermaidRenderer {
       // Replace pre element with component
       element.parentNode.replaceChild(wrapper, element);
 
-      // Mount the component
-      createApp({
-        render: () => component,
-      }).mount(wrapper);
+      // Mount the component and wait for it to render
+      return new Promise<void>((resolve) => {
+        createApp({
+          render: () => component,
+        }).mount(wrapper);
+        
+        // Give some time for the diagram to render
+        setTimeout(resolve, 100);
+      });
     } catch (error) {
       console.error("Failed to render mermaid diagram:", error);
     }
   }
 
   public initialize(): void {
+    if (this.initialized || !this.isClient) return;
+    
     try {
-      if (this.initialized) return;
-      if (!isBrowser) return;
-
       const initOnReady = (): void => {
         if (!document || !document.body) {
           console.warn(
@@ -206,23 +251,34 @@ export class MermaidRenderer {
   }
 
   public renderMermaidDiagrams(): boolean {
-    if (!isBrowser) return false;
+    if (!this.isClient) return false;
+    try {
+      const mermaidWrappers = document.getElementsByClassName("language-mermaid");
+      if (mermaidWrappers.length === 0) return false;
 
-    const mermaidWrappers = document.getElementsByClassName("language-mermaid");
-    if (mermaidWrappers.length === 0) return false;
+      // Cleanup wrappers
+      Array.from(mermaidWrappers).forEach((wrapper) => this.cleanupMermaidWrapper(wrapper));
 
-    // Cleanup wrappers
-    Array.from(mermaidWrappers).forEach(this.cleanupMermaidWrapper);
+      // Get all diagram elements
+      const mermaidElements = Array.from(mermaidWrappers)
+        .map((wrapper) => wrapper.querySelector("pre"))
+        .filter(
+          (element): element is HTMLPreElement =>
+            element instanceof HTMLPreElement,
+        );
 
-    // Render diagrams
-    const mermaidElements = Array.from(mermaidWrappers)
-      .map((wrapper) => wrapper.querySelector("pre"))
-      .filter(
-        (element): element is HTMLPreElement =>
-          element instanceof HTMLPreElement,
-      );
+      // Add diagrams to render queue
+      this.renderQueue.push(...mermaidElements);
 
-    mermaidElements.forEach((element) => this.renderMermaidDiagram(element));
-    return mermaidElements.length > 0;
+      // Start rendering if not already in progress
+      if (!this.isRendering) {
+        this.renderNextDiagram();
+      }
+
+      return mermaidElements.length > 0;
+    } catch (error) {
+      console.error("Error rendering Mermaid diagrams:", error);
+      return false;
+    }
   }
 }

@@ -14,6 +14,7 @@ Transform your static Mermaid diagrams into interactive, dynamic visualizations 
 - 🎨 Seamless VitePress Theme Integration
 - ⚡ Lightning-fast Performance
 - 🛠️ Easy Configuration
+- 🌐 Client-Side Only Rendering (SSR safe)
 
 ## 🚀 Quick Start
 
@@ -37,7 +38,7 @@ bun add vitepress-mermaid-renderer
 
 ### VitePress Configuration
 
-Your `.vitepress/config.ts` file is need to look like this:
+Your `.vitepress/theme/index.ts` file should look like this:
 
 ```typescript
 // https://vitepress.dev/guide/custom-theme
@@ -45,7 +46,7 @@ import { h, nextTick } from "vue";
 import type { Theme } from "vitepress";
 import DefaultTheme from "vitepress/theme";
 import "./style.css";
-import { MermaidRenderer } from "vitepress-mermaid-renderer";
+import { createMermaidRenderer } from "vitepress-mermaid-renderer";
 import "vitepress-mermaid-renderer/dist/style.css";
 
 export default {
@@ -54,12 +55,15 @@ export default {
     return h(DefaultTheme.Layout, null, {});
   },
   enhanceApp({ app, router, siteData }) {
-    const mermaidRenderer = MermaidRenderer.getInstance();
+    // Use the client-safe wrapper for SSR compatibility
+    const mermaidRenderer = createMermaidRenderer();
     mermaidRenderer.initialize();
 
-    router.onAfterRouteChange = () => {
-      nextTick(() => mermaidRenderer.renderMermaidDiagrams());
-    };
+    if (router) {
+      router.onAfterRouteChange = () => {
+        nextTick(() => mermaidRenderer.renderMermaidDiagrams());
+      };
+    }
   },
 } satisfies Theme;
 ```
@@ -73,6 +77,15 @@ Your Mermaid diagrams spring to life automatically! The plugin detects Mermaid c
 - 🎯 One-click view reset
 - 📺 Immersive fullscreen experience
 - 📝 Easy code copying
+
+## 📝 Client-Side Only Rendering
+
+This plugin is designed to work only on the client side, making it fully compatible with server-side rendering (SSR). All rendering operations are protected by environment checks to ensure they only execute in the browser.
+
+To ensure SSR compatibility:
+- Use `createMermaidRenderer()` rather than `MermaidRenderer.getInstance()`
+- Import styles from the distributed CSS file
+- Make sure browser environment checks are in place
 
 ## 🤝 Contributing
 

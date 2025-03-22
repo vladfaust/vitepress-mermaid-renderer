@@ -14,7 +14,11 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
       name: "VitepressMermaidRenderer",
-      fileName: "vitepress-mermaid-renderer",
+      fileName: (format) => {
+        if (format === "es") return "vitepress-mermaid-renderer.js";
+        if (format === "umd") return "vitepress-mermaid-renderer.umd.cjs";
+        return `vitepress-mermaid-renderer.${format}`;
+      },
       formats: ["es", "umd"],
     },
     rollupOptions: {
@@ -24,9 +28,16 @@ export default defineConfig({
           vue: "Vue",
           mermaid: "mermaid",
         },
-        assetFileNames: "style.css",
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name === "style.css") return "vitepress-mermaid-renderer.css";
+          return assetInfo.name || "assets/[name]-[hash][extname]";
+        },
       },
     },
+    sourcemap: true,
+    // Ensure the code only runs in the client
+    target: "esnext",
+    minify: "esbuild",
     cssMinify: true,
     cssCodeSplit: false,
     outDir: "dist",

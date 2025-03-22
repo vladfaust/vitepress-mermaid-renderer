@@ -12,7 +12,7 @@ if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }
 
 bun i
 bun remove vitepress-mermaid-renderer
-bun add ../vitepress-mermaid-renderer-1.0.9.tgz 
+bun add ../vitepress-mermaid-renderer-1.0.13.tgz 
 
 bun run docs:dev
 ```

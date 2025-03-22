@@ -34,7 +34,7 @@ import { h, nextTick } from "vue";
 import type { Theme } from "vitepress";
 import DefaultTheme from "vitepress/theme";
 import "./style.css";
-import { MermaidRenderer } from "vitepress-mermaid-renderer";
+import { createMermaidRenderer } from "vitepress-mermaid-renderer";
 import "vitepress-mermaid-renderer/dist/style.css";
 
 export default {
@@ -43,17 +43,30 @@ export default {
     return h(DefaultTheme.Layout, null, {});
   },
   enhanceApp({ app, router, siteData }) {
-    const mermaidRenderer = MermaidRenderer.getInstance();
+    // Use client-only safe implementation
+    const mermaidRenderer = createMermaidRenderer();
     mermaidRenderer.initialize();
 
-    router.onAfterRouteChange = () => {
-      nextTick(() => mermaidRenderer.renderMermaidDiagrams());
-    };
+    if (router) {
+      router.onAfterRouteChange = () => {
+        nextTick(() => mermaidRenderer.renderMermaidDiagrams());
+      };
+    }
   },
 } satisfies Theme;
 ```
 
 2. That's it! You can now use Mermaid diagrams in your markdown files.
+
+## Client-side Only Rendering
+
+This plugin implements safeguards to prevent server-side rendering (SSR) issues:
+
+- The initialization checks for browser environment before executing
+- The rendering functions only operate in client-side context
+- A safe wrapper function `createMermaidRenderer()` provides a no-op implementation during SSR
+
+If you're encountering SSR-related errors, make sure you're using the `createMermaidRenderer()` function instead of directly using `MermaidRenderer.getInstance()`.
 
 ## Basic Usage
 
@@ -73,7 +86,7 @@ This will render an interactive diagram with zoom, pan, reset view and fullscree
 You can customize the Mermaid settings by passing a configuration object when getting the instance:
 
 ```ts
-const mermaidRenderer = MermaidRenderer.getInstance({
+const mermaidRenderer = createMermaidRenderer({
   theme: "dark",
   sequence: {
     diagramMarginX: 50,

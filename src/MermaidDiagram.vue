@@ -1,16 +1,10 @@
 <template>
-  <div class="mermaid-container">
+  <div class="mermaid-container" v-if="mounted">
     <!-- Desktop Controls -->
     <div class="desktop-controls controls visible-controls" ref="controls">
       <button @click="zoomIn" title="Zoom In">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           <line x1="11" y1="8" x2="11" y2="14"></line>
@@ -19,60 +13,33 @@
       </button>
       <span class="zoom-level">{{ Math.round(scale * 100) }}%</span>
       <button @click="zoomOut" title="Zoom Out">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           <line x1="8" y1="11" x2="14" y2="11"></line>
         </svg>
       </button>
       <button @click="resetView" title="Reset View">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor">
           <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 6.9 3.2L21 8"></path>
           <path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-6.9-3.2L3 16"></path>
         </svg>
       </button>
       <button @click="copyDiagramCode" title="Copy Code">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor">
           <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-          <path
-            d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
-          ></path>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
         </svg>
         <span v-if="showCopied" class="copied-notification">Copied</span>
       </button>
       <button @click="toggleFullscreen" title="Toggle Fullscreen">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-        >
-          <path
-            d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"
-          ></path>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+          </path>
         </svg>
       </button>
     </div>
@@ -81,14 +48,8 @@
     <div class="mobile-controls controls visible-controls" ref="mobileControls">
       <div class="mobile-zoom-controls">
         <button @click="zoomIn" title="Zoom In">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             <line x1="11" y1="8" x2="11" y2="14"></line>
@@ -97,14 +58,8 @@
         </button>
         <span class="zoom-level">{{ Math.round(scale * 100) }}%</span>
         <button @click="zoomOut" title="Zoom Out">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             <line x1="8" y1="11" x2="14" y2="11"></line>
@@ -114,50 +69,26 @@
 
       <div class="mobile-nav-buttons">
         <button @click="panUp" title="Pan Up">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor">
             <path d="M12 19V5M5 12l7-7 7 7" />
           </svg>
         </button>
         <button @click="panDown" title="Pan Down">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor">
             <path d="M12 5v14M5 12l7 7 7-7" />
           </svg>
         </button>
         <button @click="panLeft" title="Pan Left">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor">
             <path d="M19 12H5m7-7l-7 7 7 7" />
           </svg>
         </button>
         <button @click="panRight" title="Pan Right">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor">
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
         </button>
@@ -165,30 +96,17 @@
 
       <div class="mobile-utility-controls">
         <button @click="resetView" title="Reset View">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor">
             <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 6.9 3.2L21 8"></path>
             <path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-6.9-3.2L3 16"></path>
           </svg>
         </button>
         <button @click="toggleFullscreen" title="Toggle Fullscreen">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <path
-              d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"
-            ></path>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+            </path>
           </svg>
         </button>
       </div>
@@ -197,7 +115,8 @@
     <!-- Error display -->
     <div v-if="renderError" class="diagram-error">
       <div class="error-message">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -210,39 +129,35 @@
       <pre v-if="showErrorDetails" class="error-details">{{ renderErrorDetails }}</pre>
     </div>
 
-    <div
-      class="diagram-wrapper"
-      ref="diagramWrapper"
-      @mousedown="startPan"
-      @mousemove="pan"
-      @mouseup="endPan"
-      @mouseleave="endPan"
-      @wheel.prevent="handleWheel"
-      @touchstart="handleTouchStart"
-      @touchmove="handleTouchMove"
-      @touchend="handleTouchEnd"
-    >
-      <div
-        :id="id"
-        class="mermaid"
-        :style="{
-          opacity: isRendered ? 1 : 0,
-          transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
-          cursor: isPanning ? 'grabbing' : 'grab',
-        }"
-      >
+    <div class="diagram-wrapper" ref="diagramWrapper" @mousedown="startPan" @mousemove="pan" @mouseup="endPan"
+      @mouseleave="endPan" @wheel.prevent="handleWheel" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
+      @touchend="handleTouchEnd">
+      <div :id="id" class="mermaid" :style="{
+        opacity: isRendered ? 1 : 0,
+        transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
+        cursor: isPanning ? 'grabbing' : 'grab',
+      }">
         {{ code }}
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { onMounted, ref, watch, onUnmounted } from "vue";
+<script setup lang="ts" clientOnly>
+import { onMounted, ref, onUnmounted, nextTick } from "vue";
 import mermaid, { MermaidConfig } from "mermaid";
 import "./style.css";
 
+// Define emits
+const emit = defineEmits<{
+  (event: 'renderComplete', payload: { id: string; success: boolean; error?: unknown }): void;
+}>();
+
+// Client-side rendering guard
+const mounted = ref(false);
+
 const props = defineProps<{
+  
   code: string;
   config?: MermaidConfig;
 }>();
@@ -254,6 +169,9 @@ const showErrorDetails = ref(false);
 
 // Initialize mermaid with default or provided config
 onMounted(() => {
+  // Set mounted to true only in client environment
+  mounted.value = true;
+
   const defaultConfig: MermaidConfig = {
     theme: "default",
     securityLevel: "loose",
@@ -436,7 +354,7 @@ const handleTouchStart = (e: TouchEvent) => {
     const touch1 = e.touches[0];
     const touch2 = e.touches[1];
     initialTouchDistance.value = Math.hypot(
-      touch2.clientX - touch1.clientX, 
+      touch2.clientX - touch1.clientX,
       touch2.clientY - touch1.clientY
     );
   }
@@ -444,16 +362,16 @@ const handleTouchStart = (e: TouchEvent) => {
 
 const handleTouchMove = (e: TouchEvent) => {
   e.preventDefault(); // Prevent scrolling while interacting with diagram
-  
+
   if (touchPanning.value && e.touches.length === 1) {
     // Handle panning
     const touch = e.touches[0];
     const deltaX = touch.clientX - lastTouchX.value;
     const deltaY = touch.clientY - lastTouchY.value;
-    
+
     translateX.value += deltaX / scale.value;
     translateY.value += deltaY / scale.value;
-    
+
     lastTouchX.value = touch.clientX;
     lastTouchY.value = touch.clientY;
   } else if (e.touches.length === 2) {
@@ -461,21 +379,21 @@ const handleTouchMove = (e: TouchEvent) => {
     const touch1 = e.touches[0];
     const touch2 = e.touches[1];
     const currentDistance = Math.hypot(
-      touch2.clientX - touch1.clientX, 
+      touch2.clientX - touch1.clientX,
       touch2.clientY - touch1.clientY
     );
-    
+
     if (initialTouchDistance.value > 0) {
       const zoomRatio = currentDistance / initialTouchDistance.value;
-      
+
       // Apply a dampening factor to make zooming less sensitive
       const newScale = scale.value * (1 + (zoomRatio - 1) * 0.2);
-      
+
       // Limit scale to reasonable bounds
       if (newScale >= 0.2 && newScale <= 10) {
         scale.value = newScale;
       }
-      
+
       initialTouchDistance.value = currentDistance;
     }
   }
@@ -491,7 +409,7 @@ const handleWheel = (e: WheelEvent) => {
     // Zoom
     const delta = -Math.sign(e.deltaY) * 0.1;
     const newScale = scale.value * (1 + delta);
-    
+
     // Apply bounds to prevent extreme zooming
     if (newScale >= 0.2 && newScale <= 10) {
       scale.value = newScale;
@@ -553,45 +471,75 @@ onMounted(async () => {
       controls.value.style.opacity = "1";
       controls.value.style.visibility = "visible";
     }
-    
+
     if (mobileControls.value) {
       mobileControls.value.style.opacity = "1";
       mobileControls.value.style.visibility = "visible";
     }
 
-    const element = document.getElementById(id);
+    // Use nextTick to ensure the DOM is updated
+    await nextTick();
+    
+    let element = document.getElementById(id);
     if (!element) {
-      throw new Error("Failed to find diagram container element");
+      console.warn("Diagram container element not found on first attempt, retrying...");
+      // Add another small delay to give more time for the DOM to update
+      await new Promise(resolve => setTimeout(resolve, 50));
+      const retryElement = document.getElementById(id);
+      if (!retryElement) {
+        throw new Error("Failed to find diagram container element");
+      }
+      element = retryElement;
     }
 
     try {
+      // Add a class to indicate rendering is in progress
+      element.classList.add('mermaid-rendering');
+      
       await mermaid.run({
         nodes: [element],
-        suppressErrors: false, // changed to false to catch errors
+        suppressErrors: false,
       });
+
+      // Add a small delay to ensure SVG is fully rendered
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       isRendered.value = true;
       renderError.value = false;
+      
+      // Remove the rendering indicator class
+      element.classList.remove('mermaid-rendering');
 
-      // Store original diagram size for "fit screen" functionality
+      // Store original diagram size
       if (element.firstElementChild) {
         const svgElement = element.querySelector("svg");
         if (svgElement) {
+          // Wait for SVG to be fully rendered
+          await new Promise(resolve => setTimeout(resolve, 50));
           originalDiagramSize.value = {
             width: svgElement.getBoundingClientRect().width,
             height: svgElement.getBoundingClientRect().height,
           };
         }
       }
+
+      // Emit an event when rendering is complete
+      emit('renderComplete', { id, success: true });
     } catch (error) {
       console.error("Failed to render mermaid diagram:", error);
       renderError.value = true;
-      renderErrorDetails.value = error instanceof Error 
+      renderErrorDetails.value = error instanceof Error
         ? error.toString()
         : 'Unknown error rendering diagram';
       
       // Still mark as rendered to display the error message
       isRendered.value = true;
+      
+      // Remove the rendering indicator class
+      element.classList.remove('mermaid-rendering');
+      
+      // Emit error event
+      emit('renderComplete', { id, success: false, error });
     }
 
     // Add fullscreen change event listeners with cross-browser support
@@ -599,13 +547,16 @@ onMounted(async () => {
     document.addEventListener("webkitfullscreenchange", updateFullscreenControls);
     document.addEventListener("mozfullscreenchange", updateFullscreenControls);
     document.addEventListener("MSFullscreenChange", updateFullscreenControls);
-    
+
   } catch (error) {
     console.error("Error in component initialization:", error);
     renderError.value = true;
-    renderErrorDetails.value = error instanceof Error 
+    renderErrorDetails.value = error instanceof Error
       ? error.toString()
       : 'Unknown error initializing component';
+    
+    // Emit error event
+    emit('renderComplete', { id, success: false, error });
   }
 });
 

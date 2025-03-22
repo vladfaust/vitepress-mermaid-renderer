@@ -204,9 +204,34 @@
 }
 
 .mermaid {
-  transition: opacity 0.2s ease-in;
+  transition: opacity 0.3s ease-in-out;
   transform-origin: center center;
   display: inline-block;
+}
+
+.mermaid-rendering {
+  opacity: 0.5;
+  position: relative;
+}
+
+.mermaid-rendering::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--vp-c-brand);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: mermaid-spinner 0.8s linear infinite;
+}
+
+@keyframes mermaid-spinner {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
 }
 
 .copied-notification {
