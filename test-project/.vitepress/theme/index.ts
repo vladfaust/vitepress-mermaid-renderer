@@ -12,14 +12,16 @@ export default {
     return h(DefaultTheme.Layout, null, {});
   },
   enhanceApp({ app, router, siteData }) {
-    const mermaidRenderer = createMermaidRenderer();
-    router.onAfterPageLoad = () => {
-      mermaidRenderer.initialize();
-      mermaidRenderer.renderMermaidDiagrams();
-    };
     if (router) {
+      router.onAfterPageLoad = () => {
+        const mermaidRenderer = createMermaidRenderer();
+        mermaidRenderer.initialize();
+        mermaidRenderer.renderMermaidDiagrams();
+      };
       router.onAfterRouteChange = () => {
-        nextTick(() => mermaidRenderer.renderMermaidDiagrams());
+        const mermaidRenderer = createMermaidRenderer();
+        mermaidRenderer.initialize();
+        mermaidRenderer.renderMermaidDiagrams();
       };
     }
   },
