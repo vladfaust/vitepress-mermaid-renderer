@@ -32,7 +32,8 @@
     "prepublishOnly": "bun run build",
     "pack": "bun run build && bun pack",
     "test-pack": "bun pack --dry-run",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepare": "vite build"
   },
   "keywords": [
     "vitepress",
