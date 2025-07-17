@@ -130,7 +130,7 @@
     </div>
 
     <div class="diagram-wrapper" ref="diagramWrapper" @mousedown="startPan" @mousemove="pan" @mouseup="endPan"
-      @mouseleave="endPan" @wheel.prevent="handleWheel" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
+      @mouseleave="endPan" @wheel="handleWheel" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
       @touchend="handleTouchEnd">
       <div :id="id" class="mermaid" :style="{
         opacity: isRendered ? 1 : 0,
@@ -405,18 +405,12 @@ const handleTouchEnd = () => {
 
 const handleWheel = (e: WheelEvent) => {
   if (e.ctrlKey) {
-    // Zoom
-    const delta = -Math.sign(e.deltaY) * 0.1;
-    const newScale = scale.value * (1 + delta);
-
-    // Apply bounds to prevent extreme zooming
-    if (newScale >= 0.2 && newScale <= 10) {
-      scale.value = newScale;
-    }
-  } else {
     // Pan
     translateX.value += -e.deltaX / scale.value;
     translateY.value += -e.deltaY / scale.value;
+    e.preventDefault();
+  } else {
+    // Do nothing.
   }
 };
 
